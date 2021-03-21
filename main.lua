@@ -29,6 +29,13 @@ end
 function love.draw()
   love.graphics.translate(camera.x, camera.y)
 
+  --love.graphics.setColour(0,0.2,0.1,0.3)
+  --love.graphics.ellipse("fill", 0, 27, 20, 10)
+
+  love.graphics.setColour(0.8*0.9,0.6*0.9,0.3*0.9)
+  love.graphics.rectangle("fill", math.sin((player.dir % math.pi)+math.pi/2)*6-4, math.cos((player.dir % math.pi)+math.pi/2)*6/2+15, 8, 12)
+  love.graphics.rectangle("fill", math.sin((player.dir % math.pi)-math.pi/2)*6-4, math.cos((player.dir % math.pi)-math.pi/2)*6/2+15, 8, 12)
+
   love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)
   love.graphics.rectangle("fill", math.sin((player.dir % math.pi)+math.pi/2)*20-4, math.cos((player.dir % math.pi)+math.pi/2)*20/2, 8, 12)
  
