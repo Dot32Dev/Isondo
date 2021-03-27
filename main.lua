@@ -27,29 +27,33 @@ function love.update(dt)
 end
 
 function love.draw()
+  love.graphics.setColour(0,0.2,0.1,0.3)--cursor
+  love.graphics.ellipse("fill", love.mouse.getX(), love.mouse.getY(), 20, 10)
+
   love.graphics.translate(camera.x, camera.y)
 
-  --love.graphics.setColour(0,0.2,0.1,0.3)
-  --love.graphics.ellipse("fill", 0, 27, 20, 10)
+  love.graphics.setColour(0.8*0.8,0.6*0.8,0.3*0.8)--pants 
+  love.graphics.rectangle("fill", math.sin((player.dir)+math.pi/2)*6-4, math.cos((player.dir)+math.pi/2)*6/2+12, 8, 12)
+  love.graphics.rectangle("fill", math.sin((player.dir)-math.pi/2)*6-4, math.cos((player.dir)-math.pi/2)*6/2+12, 8, 12)
 
-  love.graphics.setColour(0.8*0.9,0.6*0.9,0.3*0.9)
-  love.graphics.rectangle("fill", math.sin((player.dir % math.pi)+math.pi/2)*6-4, math.cos((player.dir % math.pi)+math.pi/2)*6/2+15, 8, 12)
-  love.graphics.rectangle("fill", math.sin((player.dir % math.pi)-math.pi/2)*6-4, math.cos((player.dir % math.pi)-math.pi/2)*6/2+15, 8, 12)
-
-  love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)
+  love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)--arm
   love.graphics.rectangle("fill", math.sin((player.dir % math.pi)+math.pi/2)*20-4, math.cos((player.dir % math.pi)+math.pi/2)*20/2, 8, 12)
  
-  love.graphics.setColour(0.3,0.6,0.8)
+  love.graphics.setColour(0.3,0.6,0.8)--body
   love.graphics.ellipse("fill", 0, 0, 20, 19)
 
-  love.graphics.setColour(0.9,0.7,0.6)
-  love.graphics.ellipse("fill", 0, 0-25, 20/1.2, 19/1.2)
-
-  love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)
+  love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)--arm
   love.graphics.rectangle("fill", math.sin((player.dir % math.pi)-math.pi/2)*20-4, math.cos((player.dir % math.pi)-math.pi/2)*20/2, 8, 12)
+
+  love.graphics.setColour(0.9,0.7,0.6)--head
+  love.graphics.ellipse("fill", 0, 0-20, 20/1.2, 19/1.2)
+
+  love.graphics.setColour(0,0,0)
+  love.graphics.ellipse("fill", math.sin((player.dir)-14/180*math.pi)*16, math.cos((player.dir)-14/180*math.pi)*16/2-20, 2.5, 5)
+  love.graphics.ellipse("fill", math.sin((player.dir)+14/180*math.pi)*16, math.cos((player.dir)+14/180*math.pi)*16/2-20, 2.5, 5)
   
   love.graphics.translate(-camera.x, -camera.y)
-  introDraw()
+  introDraw()--intro
 end
 
 function point(xin, yin, zin, xrot, yrot, fov)
