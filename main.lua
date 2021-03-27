@@ -45,12 +45,20 @@ function love.draw()
   love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)--arm
   love.graphics.rectangle("fill", math.sin((player.dir % math.pi)-math.pi/2)*20-4, math.cos((player.dir % math.pi)-math.pi/2)*20/2, 8, 12)
 
+  love.graphics.setColour(0,0,0)--eyes
+  love.graphics.ellipse("fill", math.sin((player.dir)-14/180*math.pi)*16, math.cos((player.dir)-14/180*math.pi)*16/2-20, 2.5, 5)
+  love.graphics.ellipse("fill", math.sin((player.dir)+14/180*math.pi)*16, math.cos((player.dir)+14/180*math.pi)*16/2-20, 2.5, 5)
+
   love.graphics.setColour(0.9,0.7,0.6)--head
   love.graphics.ellipse("fill", 0, 0-20, 20/1.2, 19/1.2)
 
-  love.graphics.setColour(0,0,0)
-  love.graphics.ellipse("fill", math.sin((player.dir)-14/180*math.pi)*16, math.cos((player.dir)-14/180*math.pi)*16/2-20, 2.5, 5)
-  love.graphics.ellipse("fill", math.sin((player.dir)+14/180*math.pi)*16, math.cos((player.dir)+14/180*math.pi)*16/2-20, 2.5, 5)
+  love.graphics.setColour(0,0,0)--eyes
+  if player.dir-14/180*math.pi < math.pi/2 and player.dir-14/180*math.pi > -math.pi/2 then
+    love.graphics.ellipse("fill", math.sin((player.dir)-14/180*math.pi)*16, math.cos((player.dir)-14/180*math.pi)*16/2-20, 2.5, 5)
+  end
+  if player.dir+14/180*math.pi < math.pi/2 and player.dir+14/180*math.pi > -math.pi/2 then
+    love.graphics.ellipse("fill", math.sin((player.dir)+14/180*math.pi)*16, math.cos((player.dir)+14/180*math.pi)*16/2-20, 2.5, 5)
+  end
   
   love.graphics.translate(-camera.x, -camera.y)
   introDraw()--intro
