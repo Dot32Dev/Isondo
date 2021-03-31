@@ -1,5 +1,27 @@
 local player = {dir = 0, x = 0, y = 0}
 local camera = {x=love.graphics.getWidth()/2, y=love.graphics.getHeight()/2}
+local shadowMap = love.graphics.newCanvas()
+
+local function p3d(p, rotation)
+  rotation = rotation or player.dir
+
+  local x = math.sin(rotation)*p
+  local y = math.cos(rotation)*p/2
+
+  local f = math.cos(rotation)*p
+
+  return x,y,f
+end
+
+local function pprint(stringg, x, y)
+  local r,g,b,a = love.graphics.getColour() 
+  if type(stringg) == "number" then
+    stringg = math.floor(stringg*10)/10
+  end
+  love.graphics.setColour(0,0,0)
+  love.graphics.print(stringg, x, y)
+  love.graphics.setColour(r,g,b,a)
+end
 
 function love.load()
   require("Intro")
@@ -10,48 +32,80 @@ end
 
 function love.update(dt)
 	introUpdate(dt)
-  player.dir = math.atan2((love.mouse.getX()-camera.x), (love.mouse.getY()-camera.y)*2)
+  player.dir = math.atan2((love.mouse.getX()-camera.x), (love.mouse.getY()-camera.y-24)*2)
 end
 
 function love.draw()
-  love.graphics.setColour(0,0.2,0.1,0.1)--cursor
-  love.graphics.ellipse("fill", love.mouse.getX(), love.mouse.getY(), 20, 10)
+  local x,y,f = p3d(0, player.dir)
 
-  love.graphics.translate(camera.x, camera.y)
+  love.graphics.setCanvas(shadowMap)
+    love.graphics.clear()
+    love.graphics.setColour(0,0.2,0.1,1)
+    love.graphics.ellipse("fill", love.mouse.getX(), love.mouse.getY(), 20, 10)
 
-  love.graphics.setColour(0,0.2,0.1,0.1)--shadow
-  love.graphics.ellipse("fill", 0, 24, 20, 10)
+    love.graphics.translate(camera.x, camera.y)-- Camera 
 
-  love.graphics.setColour(0.8*0.8,0.6*0.8,0.3*0.8)--legs
-  love.graphics.rectangle("fill", math.sin((player.dir)+math.pi/2)*6-4, math.cos((player.dir)+math.pi/2)*6/2+12, 8, 12)
-  love.graphics.rectangle("fill", math.sin((player.dir)-math.pi/2)*6-4, math.cos((player.dir)-math.pi/2)*6/2+12, 8, 12)
+    love.graphics.setColour(0,0.2,0.1,1)
+    love.graphics.ellipse("fill", 0, 24, 20, 10)
+  love.graphics.setCanvas()
+  love.graphics.setColour(1,1,1,0.1)
+  love.graphics.draw(shadowMap, -camera.x, -camera.y)
 
-  love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)--arm
-  love.graphics.rectangle("fill", math.sin((player.dir % math.pi)+math.pi/2)*20-4, math.cos((player.dir % math.pi)+math.pi/2)*20/2, 8, 12)
+  --[[ Legs ]]
+  love.graphics.setColour(0.8*0.8,0.6*0.8,0.3*0.8)
+  x,y,f = p3d(6, player.dir+math.pi/2)
+  love.graphics.rectangle("fill", x-4, y+12, 8, 12)
+  x,y,f = p3d(6, player.dir-math.pi/2)
+  love.graphics.rectangle("fill", x-4, y+12, 8, 12)
+
+
+  --[[ Back Arm ]]
+  love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)
+  x,y,f = p3d(20, (player.dir % math.pi)+math.pi/2)
+  love.graphics.rectangle("fill", x-4, y, 8, 12)
+
  
-  love.graphics.setColour(0.3,0.6,0.8)--body
+  --[[ Body ]]
+  love.graphics.setColour(0.3,0.6,0.8)
   love.graphics.ellipse("fill", 0, 0, 20, 19)
 
-  love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)--arm
-  love.graphics.rectangle("fill", math.sin((player.dir % math.pi)-math.pi/2)*20-4, math.cos((player.dir % math.pi)-math.pi/2)*20/2, 8, 12)
 
-  love.graphics.setColour(0.13,0.13,0.13)--eyes
-  love.graphics.ellipse("fill", math.sin((player.dir)-14/180*math.pi)*16, math.cos((player.dir)-14/180*math.pi)*16/2-20, 2.5, 5)
-  love.graphics.ellipse("fill", math.sin((player.dir)+14/180*math.pi)*16, math.cos((player.dir)+14/180*math.pi)*16/2-20, 2.5, 5)
+  --[[ Front Arm ]]
+  love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)
+  x,y,f = p3d(20, (player.dir % math.pi)-math.pi/2)
+  love.graphics.rectangle("fill", x-4, y, 8, 12)
+  pprint(f,x,y)
 
-  love.graphics.setColour(0.9,0.7,0.6)--head
+
+  --[[ Eyes ]]
+  love.graphics.setColour(0.13,0.13,0.13)
+  x,y,f = p3d(16, (player.dir)-14/180*math.pi)
+  love.graphics.ellipse("fill", x, y-20, 2.5, 5)
+  x,y,f = p3d(16, (player.dir)+14/180*math.pi)
+  love.graphics.ellipse("fill", x, y-20, 2.5, 5)
+
+
+  --[[ Head ]]
+  love.graphics.setColour(0.9,0.7,0.6)
   love.graphics.ellipse("fill", 0, 0-20, 20/1.2, 19/1.2)
 
-  love.graphics.setColour(0.13,0.13,0.13)--eyes
+
+  --[[ Eyes ]]
+  love.graphics.setColour(0.13,0.13,0.13)
   if player.dir-14/180*math.pi < math.pi/2 and player.dir-14/180*math.pi > -math.pi/2 then
-    love.graphics.ellipse("fill", math.sin((player.dir)-14/180*math.pi)*16, math.cos((player.dir)-14/180*math.pi)*16/2-20, 2.5, 5)
+    x,y,f = p3d(16, (player.dir)-14/180*math.pi)
+    love.graphics.ellipse("fill", x, y-20, 2.5, 5)
   end
   if player.dir+14/180*math.pi < math.pi/2 and player.dir+14/180*math.pi > -math.pi/2 then
-    love.graphics.ellipse("fill", math.sin((player.dir)+14/180*math.pi)*16, math.cos((player.dir)+14/180*math.pi)*16/2-20, 2.5, 5)
+    x,y,f = p3d(16, (player.dir)+14/180*math.pi)
+    love.graphics.ellipse("fill", x, y-20, 2.5, 5)
   end
   
-  love.graphics.translate(-camera.x, -camera.y)
-  introDraw()--intro
+
+  love.graphics.translate(-camera.x, -camera.y)-- Camera
+
+
+  introDraw()-- Intro 
 end
 
 function point(xin, yin, zin, xrot, yrot, fov)
