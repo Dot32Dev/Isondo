@@ -21,7 +21,7 @@ end
 function love.update(dt)
 	intro.update(dt)
 
-  player.dir = math.atan2((love.mouse.getX()-camera.x-player.x), (love.mouse.getY()-camera.y-player.y/2)*2)
+  player.dir = math.atan2((love.mouse.getX()-camera.x-player.x), (love.mouse.getY()-camera.y-player.z/2)*2)
   player.update()
 end
 
@@ -35,7 +35,7 @@ function love.draw()
     love.graphics.translate(camera.x, camera.y)-- Camera +
 
     love.graphics.setColour(0,0.2,0.1,1)
-    love.graphics.ellipse("fill", player.x, player.y/2, 20, 10)
+    love.graphics.ellipse("fill", player.x, player.z/2, 20, 10)
   love.graphics.setCanvas()
   love.graphics.setColour(1,1,1,0.1)
   love.graphics.draw(shadowMap, -camera.x, -camera.y)
