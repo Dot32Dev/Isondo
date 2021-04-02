@@ -1,4 +1,4 @@
-local player = {dir = 0, x = 0, y = 0}
+local player = {dir = 0, x = 0, y = 0, z = 0}
 
 local function p3d(p, rotation)
   rotation = rotation or player.dir
@@ -13,7 +13,7 @@ end
 
 function player.draw()
 	local x,y,f = p3d({x=0, y=0, z=0}) --creates the local variable, outputs dont get used
-	love.graphics.translate(player.x, player.y/2-24)
+	love.graphics.translate(player.x, player.z/2-24+player.y)
 
 	--[[ Legs ]]
   love.graphics.setColour(0.8*0.8,0.6*0.8,0.3*0.8)
@@ -59,7 +59,7 @@ function player.draw()
     love.graphics.ellipse("fill", x, y, 2.5, 5)
   end
   
-  love.graphics.translate(-player.x, -(player.y/2-24))
+  love.graphics.translate(-player.x, -(player.z/2-24+player.y))
 end
 
 function player.update()
@@ -70,10 +70,10 @@ function player.update()
     player.x = player.x + 2
   end
   if love.keyboard.isDown("up") or love.keyboard.isDown("w") then
-    player.y = player.y - 2
+    player.z = player.z - 2
   end
   if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
-    player.y = player.y + 2
+    player.z = player.z + 2
   end
 end
 
