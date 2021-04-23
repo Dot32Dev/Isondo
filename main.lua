@@ -1,7 +1,9 @@
-local player = require("player")
 local intro = require("Intro")
+local player = require("player")
 local camera = {x=love.graphics.getWidth()/2, y=love.graphics.getHeight()/2}
 local shadowMap = love.graphics.newCanvas()
+
+local walkFrame = 0
 
 local function pprint(stringg, x, y)
   local r,g,b,a = love.graphics.getColour() 
@@ -21,8 +23,10 @@ end
 function love.update(dt)
 	intro.update(dt)
 
-  player.dir = math.atan2((love.mouse.getX()-camera.x-player.x), (love.mouse.getY()-camera.y-player.z/2)*2)
+  player.dir = math.atan2((love.mouse.getX()-camera.x-player.x), (love.mouse.getY()-camera.y-player.z)*2)
   player.update()
+
+  walkFrame = walkFrame + 0.1
 end
 
 function love.draw()
@@ -35,12 +39,19 @@ function love.draw()
     love.graphics.translate(camera.x, camera.y)-- Camera +
 
     love.graphics.setColour(0,0.2,0.1,1)
-    love.graphics.ellipse("fill", player.x, player.z/2, 20, 10)
+    love.graphics.ellipse("fill", player.x, player.z, 20, 10)
   love.graphics.setCanvas()
   love.graphics.setColour(1,1,1,0.1)
   love.graphics.draw(shadowMap, -camera.x, -camera.y)
 
   player.draw()
+
+  local vLength = math.sqrt(player.xV^2 + player.zV^2) -- length of the x/z velocity
+  love.graphics.print(vLength)
+
+  love.graphics.translate(0,-math.abs(math.sin(walkFrame)*10))
+  love.graphics.line(0,0,math.sin(math.sin(walkFrame)*math.pi/2)*20, math.cos(math.sin(walkFrame)*math.pi/2)*20)
+  love.graphics.line(0,0,math.sin(math.sin(-walkFrame)*math.pi/2)*20, math.cos(math.sin(-walkFrame)*math.pi/2)*20)
 
   love.graphics.translate(-camera.x, -camera.y)-- Camera -
 
