@@ -49,9 +49,14 @@ function love.draw()
   local vLength = math.sqrt(player.xV^2 + player.zV^2) -- length of the x/z velocity
   love.graphics.print(vLength)
 
-  love.graphics.translate(0,-math.abs(math.sin(walkFrame)*10))
-  love.graphics.line(0,0,math.sin(math.sin(walkFrame)*math.pi/2)*20, math.cos(math.sin(walkFrame)*math.pi/2)*20)
-  love.graphics.line(0,0,math.sin(math.sin(-walkFrame)*math.pi/2)*20, math.cos(math.sin(-walkFrame)*math.pi/2)*20)
+  -- love.graphics.translate(0,-math.abs(math.sin(walkFrame)*10))
+  -- love.graphics.line(0,0,math.sin(math.sin(walkFrame)*math.pi/2)*20, math.cos(math.sin(walkFrame)*math.pi/2)*20)
+  -- love.graphics.line(0,0,math.sin(math.sin(-walkFrame)*math.pi/2)*20, math.cos(math.sin(-walkFrame)*math.pi/2)*20)
+  love.graphics.setLineWidth(8)
+  love.graphics.setColour(0.8*0.8,0.6*0.8,0.3*0.8)
+  love.graphics.translate(0,-math.abs(math.sin(player.animFrame)*math.pi/2*10))
+  --love.graphics.line(0,0,math.sin(math.sin(player.animFrame)*math.pi/2)*12, math.cos(math.sin(player.animFrame)*math.pi/2)*12)
+  love.graphics.line(0,0,math.sin(-math.sin(player.animFrame)*math.pi/2)*12, math.cos(-math.sin(player.animFrame)*math.pi/2)*12)
 
   love.graphics.translate(-camera.x, -camera.y)-- Camera -
 
