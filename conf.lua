@@ -65,7 +65,7 @@ end
 ---]]
 
 -- 1 / Ticks Per Second
-local TICK_RATE = 1 / FPS
+local TICK_RATE = 1 / 60
 
 -- How many Frames are allowed to be skipped at once due to lag (no "spiral of death")
 local MAX_FRAME_SKIP = 25
