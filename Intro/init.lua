@@ -1,6 +1,9 @@
-intro = {}
+local intro = {}
 
-function introInitialise(subtext)
+local project = {}
+project.font = love.graphics.newFont("Public_Sans/static/PublicSans-Black.ttf", 20)
+
+function intro.init(subtext)
   intro.dot32 = {}
   intro.dot32.font = love.graphics.newFont("Intro/PT_Sans/PTSans-Bold.ttf", 100)
   intro.dot32.x = love.graphics.getWidth()/2
@@ -9,14 +12,16 @@ function introInitialise(subtext)
 
   intro.sub = {}
   intro.sub.font = love.graphics.newFont("Intro/PT_Sans/PTSans-Regular.ttf", 45)
-  intro.sub.text = subtext
-  intro.sub.x = 0--love.graphics.getWidth()/2
+  intro.sub.text = subtext or "Games"
+  intro.sub.x = 0
   intro.sub.y = love.graphics.getHeight()/1.65
   intro.sub.xV = 0
 
+  --[[Edit these values]]
+  intro.time = 0.5 -- time before fading is initiated
+  intro.sustain = 0.2 -- how long fading out takes
+
   intro.timer = 0
-  intro.time = 0.5
-  intro.sustain = 0.2
   intro.phase = 1
   intro.ghost = 1
 
@@ -31,8 +36,11 @@ function introInitialise(subtext)
   love.graphics.setColourMode       = love.graphics.setColorMode
 end
 
-function introUpdate(dt)
-  intro.dot32.yV = intro.dot32.yV + ((love.graphics.getHeight()/2 - intro.dot32.y)*0.5)*fuckBoolean(intro.phase == 1)
+function intro.update(dt)
+  if not dt then
+    error("dt is required for intro.update(dt)")
+  end
+  intro.dot32.yV = intro.dot32.yV + ((intro.phase == 1 and (love.graphics.getHeight()/2 - intro.dot32.y)*0.5) or 0)
   intro.dot32.y = intro.dot32.y + intro.dot32.yV/2
   intro.dot32.yV = intro.dot32.yV * 0.6
 
@@ -44,7 +52,7 @@ function introUpdate(dt)
   
   if intro.timer > intro.time then
     intro.phase = 2
-    love.graphics.setFont(screen.font)
+    love.graphics.setFont(project.font)
   end
   if intro.phase == 2 then
     intro.ghost = intro.ghost -dt/intro.sustain
@@ -54,7 +62,7 @@ function introUpdate(dt)
   end
 end
 
-function introDraw()
+function intro.draw()
   if intro.phase < 3 then
     love.graphics.setColor(0.17, 0.17, 0.17, intro.ghost)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
@@ -73,15 +81,7 @@ function introDraw()
   end
 end
 
-function fuckBoolean(boolean)
-  if boolean == true then
-    return 1
-  else
-    return 0
-  end
-end
-
-function HSL(h, s, l, a)
+function intro.HSL(h, s, l, a)
   if s<=0 then return l,l,l,a end
   h, s, l = h*6, s, l
   local c = (1-math.abs(2*l-1))*s
@@ -96,6 +96,16 @@ function HSL(h, s, l, a)
   end return (r+m),(g+m),(b+m),a
 end
 
+function intro.pprint(stringg, x, y)
+  local r,g,b,a = love.graphics.getColour() 
+  if type(stringg) == "number" then
+    stringg = math.floor(stringg*10)/10
+  end
+  love.graphics.setColour(0,0,0)
+  love.graphics.print(stringg, x, y)
+  love.graphics.setColour(r,g,b,a)
+end
+
 -- function love.keypressed(key)
   -- if key == "f" and love.keyboard.isDown("lgui") and love.keyboard.isDown("lctrl") and operatingSystem == "OS X" then
   --     love.window.setFullscreen(true)
@@ -104,3 +114,4 @@ end
   --     love.window.setFullscreen(true)
   -- end
 -- end
+return intro
