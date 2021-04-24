@@ -26,20 +26,31 @@ function player.draw()
   x1,y1,z1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2)*12, y=12+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=-6})
   love.graphics.line(x, y, x1, y1) -- right leg
 
-  --[[ Back Arm ]]
+  --[[ Back Arms ]]
   love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)
-  x,y,z = p3d({x=20, y=0, z=0}, (player.dir % math.pi)+math.pi/2)
-  love.graphics.rectangle("fill", x-4, y, 8, 12)
+  x,y,z = p3d({x=0, y=0, z=20})
+  x1,y1,z1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2)*12, y=math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=20})
+  love.graphics.line(x, y, x1, y1)
+  x,y,z = p3d({x=0, y=0, z=-20})
+  x1,y1,z1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2)*12, y=math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=-20})
+  love.graphics.line(x, y, x1, y1)
  
   --[[ Body ]]
   love.graphics.setColour(0.3,0.6,0.8)
   love.graphics.ellipse("fill", 0, 0, 20, 19)
 
-  --[[ Front Arm ]]
+  --[[ Front Arms ]]
   love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)
-  x,y,z = p3d({x=20, y=0, z=0}, (player.dir % math.pi)-math.pi/2)
-  love.graphics.rectangle("fill", x-4, y, 8, 12)
-  --pprint(f,x,y)
+  if player.dir+math.pi/2 < math.pi/2 and player.dir+math.pi/2 > -math.pi/2 then
+    x,y,z = p3d({x=0, y=0, z=20})
+    x1,y1,z1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2)*12, y=math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=20})
+    love.graphics.line(x, y, x1, y1)
+  end
+  if player.dir-math.pi/2 < math.pi/2 and player.dir-math.pi/2 > -math.pi/2 then
+    x,y,z = p3d({x=0, y=0, z=-20})
+    x1,y1,z1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2)*12, y=math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=-20})
+    love.graphics.line(x, y, x1, y1)
+  end
 
   --[[ Back Eyes ]]
   love.graphics.setColour(0.13,0.13,0.13)
