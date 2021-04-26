@@ -1,7 +1,9 @@
-local intro = require("Intro")
+local intro = require("intro")
 local player = require("player")
 local camera = {x=love.graphics.getWidth()/2, y=love.graphics.getHeight()/2}
 local shadowMap = love.graphics.newCanvas()
+
+local water = {r=0.81,g=0.83,b=1}
 
 local function pprint(stringg, x, y)
   local r,g,b,a = love.graphics.getColour() 
@@ -15,7 +17,7 @@ end
 
 function love.load()
   intro.init()
-  love.graphics.setBackgroundColour(142/255,183/255,130/255)
+  love.graphics.setBackgroundColour(142/255*water.r,183/255*water.g,130/255*water.b)
 end
 
 function love.update(dt)
@@ -51,7 +53,15 @@ function love.draw()
   --love.graphics.line(0,0,math.sin(math.sin(player.animFrame)*math.pi/2)*12, math.cos(math.sin(player.animFrame)*math.pi/2)*12)
   --love.graphics.line(0,0,math.sin(-math.sin(player.animFrame)*math.pi/2)*12, math.cos(-math.sin(player.animFrame)*math.pi/2)*12)
 
+  --love.graphics.setColour(1,1,1)
+  --love.graphics.polygon('fill',0,0, 5,-5, 10,-5, 10,-10, 15,-15, 20,-10, 20,-5, 50,-5, 55,0, 50,5, 20,5, 20,10, 15,15, 10,10, 10,5, 5,5)
+
   love.graphics.translate(-camera.x, -camera.y)-- Camera
 
   intro.draw()
+end
+
+function love.resize()
+  camera = {x=love.graphics.getWidth()/2, y=love.graphics.getHeight()/2}
+  shadowMap = love.graphics.newCanvas()
 end
