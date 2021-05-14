@@ -1,9 +1,10 @@
 local intro = require("intro")
 local player = require("player")
+local player = player.new()
+local tree = require("tree")
+local tree = tree.new()
 local camera = {x=love.graphics.getWidth()/2, y=love.graphics.getHeight()/2}
 local shadowMap = love.graphics.newCanvas()
-
-local water = {r=0.81,g=0.83,b=1}
 
 local function pprint(stringg, x, y)
   local r,g,b,a = love.graphics.getColour() 
@@ -16,15 +17,15 @@ local function pprint(stringg, x, y)
 end
 
 function love.load()
-  intro.init()
-  love.graphics.setBackgroundColour(142/255*water.r,183/255*water.g,130/255*water.b)
+  intro:init()
+  --love.graphics.setBackgroundColour(142/255*intro.globals.water.r,183/255*intro.globals.water.g,130/255*intro.globals.water.b)
+  love.graphics.setBackgroundColour(142/255,183/255,130/255)
 end
 
 function love.update(dt)
-	intro.update(dt)
+	intro:update(dt)
 
-  player.dir = math.atan2((love.mouse.getX()-camera.x-player.x), (love.mouse.getY()-camera.y-player.z)*2)
-  player.update()
+  player:update(camera.x, camera.y)
 end
 
 function love.draw()
@@ -37,12 +38,15 @@ function love.draw()
     love.graphics.translate(camera.x, camera.y)-- Camera +
 
     love.graphics.setColour(0,0.2,0.1,1)
-    love.graphics.ellipse("fill", player.x, player.z, 20, 10)
+    love.graphics.ellipse("fill", player.x, player.z/2, 20, 10)
+    love.graphics.ellipse("fill", tree.x, tree.z/2, 20*1.3, 20*0.65)
   love.graphics.setCanvas()
   love.graphics.setColour(1,1,1,0.1)
   love.graphics.draw(shadowMap, -camera.x, -camera.y)
 
-  player.draw()
+  player:draw()
+
+  tree:draw()
 
   --local vLength = math.sqrt(player.xV^2 + player.zV^2) -- length of the x/z velocity
   --pprint(vLength)
@@ -58,7 +62,9 @@ function love.draw()
 
   love.graphics.translate(-camera.x, -camera.y)-- Camera
 
-  intro.draw()
+  --pprint(tree.x)
+
+  intro:draw()
 end
 
 function love.resize()
