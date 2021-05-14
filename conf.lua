@@ -11,7 +11,7 @@ function love.conf(t)
     t.audio.mixwithsystem = true        -- Keep background music playing when opening LOVE (boolean, iOS and Android only)
 
     t.window.title = "idek"             -- The window title (string)
-    t.window.icon = "icon3.png"                 -- Filepath to an image to use as the window's icon (string)
+    t.window.icon = "icon45.png"         -- Filepath to an image to use as the window's icon (string)
     t.window.width = 800                -- The window width (number)
     t.window.height = 600               -- The window height (number)
     t.window.borderless = false         -- Remove all border visuals from the window (boolean)
