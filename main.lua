@@ -1,6 +1,7 @@
 local intro = require("intro")
 
 local camera = {x=love.graphics.getWidth()/2, y=0, z=love.graphics.getHeight()/2, r=0}
+local direction = 0
 
 local player = require("player")
 local tree = require("tree")
@@ -9,8 +10,6 @@ table.insert(entities, player.new(camera))
 for i=1, 30 do
   table.insert(entities, tree.new(camera, love.math.random(-800, 800), love.math.random(-800, 800)))
 end
-
-local compass = love.graphics.newImage('icon45.png')
 
 --local tree = tree.new()
 local shadowMap = love.graphics.newCanvas()
@@ -49,12 +48,14 @@ function love.update(dt)
     entities[i]:update(dt)
   end
 
-  if love.keyboard.isDown('e') then
-    camera.r = camera.r - 0.05
-  end
-  if love.keyboard.isDown('q') then
-    camera.r = camera.r + 0.05
-  end
+  camera.r = camera.r + (direction*math.pi/2 - camera.r)*60*dt *(1 / (1 + (dt*60*1/ 0.2)))
+
+  -- if love.keyboard.isDown('e') then
+  --   camera.r = camera.r - 0.05
+  -- end
+  -- if love.keyboard.isDown('q') then
+  --   camera.r = camera.r + 0.05
+  -- end
 end
 
 function love.draw()
@@ -87,22 +88,25 @@ function love.draw()
     entities[i]:draw()
   end
 
-  --local vLength = math.sqrt(player.xV^2 + player.zV^2) -- length of the x/z velocity
-  --pprint(vLength)
-
-  --love.graphics.setLineWidth(8)
-  --love.graphics.setColour(0.8*0.8,0.6*0.8,0.3*0.8)
-  --love.graphics.translate(0,-math.abs(math.sin(player.animFrame)*math.pi/2*10))
-  --love.graphics.line(0,0,math.sin(math.sin(player.animFrame)*math.pi/2)*12, math.cos(math.sin(player.animFrame)*math.pi/2)*12)
-  --love.graphics.line(0,0,math.sin(-math.sin(player.animFrame)*math.pi/2)*12, math.cos(-math.sin(player.animFrame)*math.pi/2)*12)
-
-  --love.graphics.setColour(1,1,1)
-  --love.graphics.polygon('fill',0,0, 5,-5, 10,-5, 10,-10, 15,-15, 20,-10, 20,-5, 50,-5, 55,0, 50,5, 20,5, 20,10, 15,15, 10,10, 10,5, 5,5)
+  -- love.graphics.setColour(1,1,1)
+  -- love.graphics.polygon('fill',0,0, 5,-5, 10,-5, 10,-10, 15,-15, 20,-10, 20,-5, 50,-5, 55,0, 50,5, 20,5, 20,10, 15,15, 10,10, 10,5, 5,5)
 
   love.graphics.translate(-camera.x, -camera.z)-- Camera -
+  local f = love.graphics.getFont()
 
-  love.graphics.setColour(1,1,1)
-  love.graphics.draw(compass, 700, 500, -camera.r, 0.5, 0.5, compass:getWidth()/2, compass:getHeight()/2)
+  do local compass = {size=30, x=720, y=520}
+    love.graphics.setLineWidth(2)
+    love.graphics.setColour(1,1,1, 0.3)
+    love.graphics.circle('line', compass.x, compass.y, compass.size)
+    love.graphics.setColour(1,1,1)
+    love.graphics.circle('fill', compass.x, compass.y, 3)
+    love.graphics.line(compass.x, compass.y-compass.size/3, compass.x, compass.y+compass.size/3)
+
+    love.graphics.print('N', compass.x + math.cos(-camera.r-math.pi/2)*compass.size-f:getWidth('N')/2, compass.y + math.sin(-camera.r-math.pi/2)*compass.size-f:getHeight()/2)
+    love.graphics.print('E', compass.x + math.cos(-camera.r)*compass.size-f:getWidth('E')/2, compass.y + math.sin(-camera.r)*compass.size-f:getHeight()/2)
+    love.graphics.print('S', compass.x + math.cos(-camera.r+math.pi/2)*compass.size-f:getWidth('S')/2, compass.y + math.sin(-camera.r+math.pi/2)*compass.size-f:getHeight()/2)
+    love.graphics.print('W', compass.x + math.cos(-camera.r-math.pi)*compass.size-f:getWidth('W')/2, compass.y + math.sin(-camera.r-math.pi)*compass.size-f:getHeight()/2)
+  end
 
   --pprint(tree.x)
 
@@ -112,4 +116,13 @@ end
 function love.resize()
   camera = {x=love.graphics.getWidth()/2, y=0, z=love.graphics.getHeight()/2}
   shadowMap = love.graphics.newCanvas()
+end
+
+function love.keypressed(k)
+  if k == 'e' then
+    direction = direction - 1
+  end
+  if k == 'q' then
+    direction = direction + 1
+  end
 end
