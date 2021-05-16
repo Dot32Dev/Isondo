@@ -172,9 +172,11 @@ function entity.new(camera)
     love.graphics.translate(-tx, -ty)
   end
 
-  function player:update()
-    local tx, ty = p3d({z=love.mouse.getX(), y=self.y, x=love.mouse.getY()}, self.camera.r)
-    self.dir = math.atan2((tx-self.camera.x-self.x), (ty-self.camera.z-self.z)*2)
+  function player:update(dt)
+    local tx, ty = p3d({z=self.x, y=0, x=self.z}, self.camera.r)
+    tx = tx + self.camera.x
+    ty = ty + self.camera.z
+    self.dir = math.atan2((tx-love.mouse.getX()), (ty-love.mouse.getY())*2)+math.pi
 
     if love.keyboard.isDown("r") then
       self.x = 0
