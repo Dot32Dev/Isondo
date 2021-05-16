@@ -169,9 +169,9 @@ function entity.new(camera)
       self.objects[i]:draw()
     end
     
-    love.graphics.setColour(0,0,0)
-    local vLength = math.sqrt(self.xV^2 + self.zV^2)
-    love.graphics.print(vLength)
+    --love.graphics.setColour(0,0,0)
+    --local vLength = math.sqrt(self.xV^2 + self.zV^2)
+    --love.graphics.print(vLength)
     
     love.graphics.translate(-tx, -ty)
   end
@@ -191,19 +191,27 @@ function entity.new(camera)
     local acceleration = 2
     local moved = false
     if love.keyboard.isDown("left") or love.keyboard.isDown("a") then
-      self.xV = self.xV - acceleration*60*dt
+      --self.xV = self.xV - acceleration*60*dt
+      self.xV = self.xV - math.cos(self.camera.r)*acceleration*60*dt
+      self.zV = self.zV - math.sin(self.camera.r)*acceleration*60*dt
       moved = true
     end
     if love.keyboard.isDown("right") or love.keyboard.isDown("d") then
-      self.xV = self.xV + acceleration*60*dt
+      --self.xV = self.xV + acceleration*60*dt
+      self.xV = self.xV + math.cos(self.camera.r)*acceleration*60*dt
+      self.zV = self.zV + math.sin(self.camera.r)*acceleration*60*dt
       moved = true
     end
     if love.keyboard.isDown("up") or love.keyboard.isDown("w") then
-      self.zV = self.zV - acceleration*60*dt
+      --self.zV = self.zV - acceleration*60*dt
+      self.xV = self.xV - math.cos(self.camera.r+math.pi/2)*acceleration*60*dt
+      self.zV = self.zV - math.sin(self.camera.r+math.pi/2)*acceleration*60*dt
       moved = true
     end
     if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
-      self.zV = self.zV + acceleration*60*dt
+      --self.zV = self.zV + acceleration*60*dt
+      self.xV = self.xV + math.cos(self.camera.r+math.pi/2)*acceleration*60*dt
+      self.zV = self.zV + math.sin(self.camera.r+math.pi/2)*acceleration*60*dt
       moved = true
     end
     
