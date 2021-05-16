@@ -1,8 +1,9 @@
 intro = require('intro') -- require intro for access to dependencies (intro.globals)
 local entity = {}
 
-function entity.new()
-  local player = {id = 'player', dir = 0, x = 0, y = 0, z = 0, xV = 0, yV = 0, zV = 0, animFrame = 0, wet = -0}
+function entity.new(camera)
+  local player = {id = 'player', dir = 0, x = 0, y = 0, z = 0, xV = 0, yV = 0, zV = 0, animFrame = 0, wet = -0, shadow = 20}
+  player.camera = camera or {love.graphics.getWidth()/2, love.graphics.getHeight()/2}
 
   local function p3d(p, rotation)
     rotation = rotation or player.dir -- rotation is a scalar that rotates around the y axis
@@ -158,7 +159,8 @@ function entity.new()
   }
 
   function player:draw()
-  	love.graphics.translate(self.x, self.z/2+self.y)
+    local tx, ty = p3d({x=self.z, y=self.y, z=self.x}, self.camera.r)
+  	love.graphics.translate(tx, ty)
 
     table.sort(self.objects, function(a,b) 
       return (a.z < b.z)
@@ -167,13 +169,12 @@ function entity.new()
       self.objects[i]:draw()
     end
     
-    love.graphics.translate(-self.x, -(self.z/2+self.y))
+    love.graphics.translate(-tx, -ty)
   end
 
-  function player:update(cameraX, cameraY)
-    cameraX = cameraX or love.graphics.getWidth()/2
-    cameraY = cameraY or love.graphics.getHeight()/2
-    self.dir = math.atan2((love.mouse.getX()-cameraX-self.x), (love.mouse.getY()-cameraY-self.z/2)*2)
+  function player:update()
+    local tx, ty = p3d({z=love.mouse.getX(), y=self.y, x=love.mouse.getY()}, self.camera.r)
+    self.dir = math.atan2((tx-self.camera.x-self.x), (ty-self.camera.z-self.z)*2)
 
     if love.keyboard.isDown("r") then
       self.x = 0
@@ -214,7 +215,7 @@ function entity.new()
 
     self.x, 
     self.z = -- +Velocity
-    self.x + self.xV, 
+    self.x + self.xV,
     self.z + self.zV
 
     local fall = 0.3
