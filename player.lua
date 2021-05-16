@@ -169,6 +169,10 @@ function entity.new(camera)
       self.objects[i]:draw()
     end
     
+    love.graphics.setColour(0,0,0)
+    local vLength = math.sqrt(self.xV^2 + self.zV^2)
+    love.graphics.print(vLength)
+    
     love.graphics.translate(-tx, -ty)
   end
 
@@ -187,44 +191,49 @@ function entity.new(camera)
     local acceleration = 2
     local moved = false
     if love.keyboard.isDown("left") or love.keyboard.isDown("a") then
-      self.xV = self.xV - acceleration
+      self.xV = self.xV - acceleration*60*dt
       moved = true
     end
     if love.keyboard.isDown("right") or love.keyboard.isDown("d") then
-      self.xV = self.xV + acceleration
+      self.xV = self.xV + acceleration*60*dt
       moved = true
     end
     if love.keyboard.isDown("up") or love.keyboard.isDown("w") then
-      self.zV = self.zV - acceleration
+      self.zV = self.zV - acceleration*60*dt
       moved = true
     end
     if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
-      self.zV = self.zV + acceleration
+      self.zV = self.zV + acceleration*60*dt
       moved = true
     end
     
-    local damping = 0.81
-    if self.wet < 0 then
-      damping = 0.7
-    end
+    -- local damping = 0.81
+    -- if self.wet < 0 then
+    --   damping = 0.7
+    -- end
     local vLength = math.sqrt(self.xV^2 + self.zV^2) -- length of the x/z velocity
-    local maxSpeed = (acceleration / (1 - damping)) - acceleration -- calculates terminal velocity given acceleration and damping
-    local multiplier = maxSpeed/math.max(maxSpeed, vLength) -- normalises the speed at which the player can move
+    --local maxSpeed = (acceleration / (1 - damping)) - acceleration -- calculates terminal velocity given acceleration and damping
+    --local multiplier = maxSpeed/math.max(maxSpeed, vLength) -- normalises the speed at which the player can move
     self.xV, 
     self.zV = -- *damping*multiplier
-    self.xV * damping*multiplier, 
-    self.zV * damping*multiplier
+    self.xV * (1 / (1 + (dt * 14))),--* damping*multiplier, 
+    self.zV * (1 / (1 + (dt * 14)))--* damping*multiplier
+
+    if vLength > 8.57 then
+      player.xV = player.xV/vLength*8.57
+      player.zV = player.zV/vLength*8.57
+    end
 
     self.x, 
     self.z = -- +Velocity
-    self.x + self.xV,
-    self.z + self.zV
+    self.x + self.xV*60*dt,
+    self.z + self.zV*60*dt
 
     local fall = 0.3
     if self.wet < 0 then
       fall = 0.1
     end
-    self.animFrame = (moved and (self.animFrame + vLength/50)) or (self.animFrame % math.pi + (0-self.animFrame % math.pi)*fall)
+    self.animFrame = (moved and (self.animFrame + 8.57/50*60*dt)) or (self.animFrame % math.pi + (0-self.animFrame % math.pi)*fall)
     self.y = -math.abs(math.sin(self.animFrame)*math.pi/2*10)
     self.wet = -0-self.y
   end
