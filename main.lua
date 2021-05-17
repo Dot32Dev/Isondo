@@ -11,6 +11,8 @@ for i=1, 30 do
   table.insert(entities, tree.new(camera, love.math.random(-800, 800), love.math.random(-800, 800)))
 end
 
+local sword = love.graphics.newImage('items/sword.png')
+
 --local tree = tree.new()
 local shadowMap = love.graphics.newCanvas()
 
@@ -80,21 +82,24 @@ function love.draw()
   love.graphics.draw(shadowMap, -camera.x, -camera.z)
 
   table.sort(entities, function(a,b)
-    local _, _, az = p3d({x=a.z, y=a.y, z=a.x}, camera.r)
-    local _, _, bz = p3d({x=b.z, y=b.y, z=b.x}, camera.r)
+    local _, _, az = p3d({x=a.z, y=0, z=a.x}, camera.r)
+    local _, _, bz = p3d({x=b.z, y=0, z=b.x}, camera.r)
     return (az < bz)
   end)
   for i=1, #entities do
     entities[i]:draw()
   end
 
-  -- love.graphics.setColour(1,1,1)
-  -- love.graphics.polygon('fill',0,0, 5,-5, 10,-5, 10,-10, 15,-15, 20,-10, 20,-5, 50,-5, 55,0, 50,5, 20,5, 20,10, 15,15, 10,10, 10,5, 5,5)
+  love.graphics.setColour(1,1,1)
+  ----love.graphics.polygon('fill',0,0, 5,-5, 10,-5, 10,-10, 15,-15, 20,-10, 20,-5, 50,-5, 55,0, 50,5, 20,5, 20,10, 15,15, 10,10, 10,5, 5,5)
+  --love.graphics.polygon('fill', 0,0, 5,-5, 50,-5, 55,0, 50,5, 5,5)
+  --love.graphics.polygon('fill', 15,-15, 20,-10, 20,10, 15,15, 10,10, 10,-10)
+  --love.graphics.draw(sword, entities[1].x, entities[1].y, nil, 0.5)
 
   love.graphics.translate(-camera.x, -camera.z)-- Camera -
   local f = love.graphics.getFont()
 
-  do local compass = {size=30, x=720, y=520}
+  do local compass = {size=30, x=love.graphics.getWidth()-80, y=love.graphics.getHeight()-80}
     love.graphics.setLineWidth(2)
     love.graphics.setColour(1,1,1, 0.3)
     love.graphics.circle('line', compass.x, compass.y, compass.size)
@@ -108,13 +113,16 @@ function love.draw()
     love.graphics.print('W', compass.x + math.cos(-camera.r-math.pi)*compass.size-f:getWidth('W')/2, compass.y + math.sin(-camera.r-math.pi)*compass.size-f:getHeight()/2)
   end
 
+  pprint(camera.x)
+  pprint(camera.z, 0, 20)
   --pprint(tree.x)
 
   intro:draw()
 end
 
 function love.resize()
-  camera = {x=love.graphics.getWidth()/2, y=0, z=love.graphics.getHeight()/2}
+  camera.x = love.graphics.getWidth()/2
+  camera.z = love.graphics.getHeight()/2
   shadowMap = love.graphics.newCanvas()
 end
 
