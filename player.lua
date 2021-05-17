@@ -1,19 +1,52 @@
-intro = require('intro') -- require intro for access to dependencies (intro.globals)
+local intro = require('intro') -- require intro for access to dependencies (intro.globals)
+local items = require('items')
 local entity = {}
 
 function entity.new(camera)
   local player = {id = 'player', dir = 0, x = 0, y = 0, z = 0, xV = 0, yV = 0, zV = 0, animFrame = 0, wet = -0, shadow = 20}
   player.camera = camera or {love.graphics.getWidth()/2, love.graphics.getHeight()/2}
 
-  local function p3d(p, rotation)
+  local function p3d(p, rotation) -- p = {x= , y= , z= } (x/z may be swapped around (?))
     rotation = rotation or player.dir -- rotation is a scalar that rotates around the y axis
 
     local x = math.sin(rotation)*p.x 	 + 0   +	math.sin(rotation+math.pi/2)*p.z
     local y = math.cos(rotation)*p.x/2 + p.y +	math.cos(rotation+math.pi/2)*p.z/2
 
-    local z = math.cos(rotation)*p.x 	 - p.y +	math.cos(rotation+math.pi/2)*p.z
+    local z = math.cos(rotation)*p.x 	 - p.y +	math.cos(rotation+math.pi/2)*p.z -- z is used for depth sorting
 
     return x,y,z
+  end
+
+  player.inventory = {
+    selected = 1,
+    vertices = function() -- generates the vertices for a mesh to contain the item image
+      local img = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].img) or false
+      if not img then 
+        return {{-0,-0, 0,0},{0,-0, 1,0},{0,0, 1,1},{-0,0, 0,1}}
+      end
+
+      tlx, tly, tlz = 0,-img:getHeight()/2, 0
+      trx, try, trz = img:getWidth(),-img:getHeight()/2, 0
+      brx, bry, brz = img:getWidth(), img:getHeight()/2, 0
+      blx, bly, blz = 0, img:getHeight()/2, 0
+
+      tlx, tly, tlz = p3d({x=tlx, y=tly, z=tlz})
+      trx, try, trz = p3d({x=trx, y=try, z=trz})
+      brx, bry, brz = p3d({x=brx, y=bry, z=brz})
+      blx, bly, blz = p3d({x=blx, y=bly, z=blz})
+
+      return {{tlx, tly, 0,0},{trx, try, 1,0},{brx, bry, 1,1},{blx, bly, 0,1}}
+    end,
+  }
+
+  player.inventory[1] = {1} -- "{1}" is the index to an item in the items table
+  for i=1, 10-#player.inventory do -- ensures 10 items
+    table.insert(player.inventory, {}) -- insert empty table
+  end
+
+  player.inventory.mesh = love.graphics.newMesh(player.inventory.vertices(), "fan", "stream")
+  if player.inventory[player.inventory.selected][1] then -- if the selected item isnt pointing to an empty table
+    player.inventory.mesh:setTexture(items[player.inventory[player.inventory.selected][1]].img)
   end
 
   local x,y,z, x1,y1,z1 = 0,0,0, 0,0,0 -- creates the local variables, outputs dont get used
@@ -46,7 +79,7 @@ function entity.new(camera)
           love.graphics.setColour(0.3*0.9*intro.globals.water.r, 0.6*0.9*intro.globals.water.g, 0.8*0.9*intro.globals.water.b)
         end
         x,y,z = p3d({x=0, y=-24, z=20})
-        x1,y1,z1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=20})
+        x1,y1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=20})
         love.graphics.line(x, y, x1, y1)
 
         _, _, self.z = p3d({x=0, y=-24, z=20})
@@ -61,8 +94,13 @@ function entity.new(camera)
           love.graphics.setColour(0.3*0.9*intro.globals.water.r, 0.6*0.9*intro.globals.water.g, 0.8*0.9*intro.globals.water.b)
         end
         x,y,z = p3d({x=0, y=-24, z=-20})
-        x1,y1,z1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=-20})
+        x1,y1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=-20})
         love.graphics.line(x, y, x1, y1)
+
+        love.graphics.setColour(1,1,1)
+        --love.graphics.draw(items[player.inventory[1][1][1]].img, x1, y1, nil, 0.5, nil, 0, items[player.inventory[1][1][1]].img:getHeight()/2)
+        love.graphics.draw(player.inventory.mesh, x1, y1, nil, 0.5, nil, 0)
+        player.inventory.mesh:setVertices(player.inventory.vertices())
 
         _, _, self.z = p3d({x=0, y=-24, z=-20})
       end 
