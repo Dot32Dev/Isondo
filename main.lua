@@ -4,22 +4,23 @@ local camera = {x=love.graphics.getWidth()/2, y=0, z=love.graphics.getHeight()/2
 camera.screenShake = {x=0, y=0, xV=0, yV=0}
 local direction = 0 -- (north = 0, east = 1, south = 2, west = 3)
 
+local tree = require('blocks/tree')
 local grid = {tileSize = 60, countX = 25, countY = 25}
 grid.oX, grid.oY = grid.countY/2*grid.tileSize, grid.countY/2*grid.tileSize
 for x=1, grid.countX do
   grid[x] = {}
   for y=1, grid.countY do
-    grid[x][y] = "im special"
+    grid[x][y] = false
+    if love.math.random(1,20) == 1 then
+      grid[x][y] = tree.new()
+    end
   end
 end
 
-local player = require("player")
-local tree = require("tree")
+local player = require('player')
+local tree = require('tree')
 local entities = {}
 table.insert(entities, player.new(camera))
-for i=1, 30 do
-  table.insert(entities, tree.new(camera, love.math.random(-800, 800), love.math.random(-800, 800)))
-end
 
 local sword = love.graphics.newImage('items/sword.png')
 
@@ -94,29 +95,35 @@ function love.draw()
 
 
   -- draw grid 
-  if love.keyboard.isDown('`') then
-    --love.graphics.translate(-grid.oX, -grid.oY/2)
-    local f1, f2, f3 = 0,0,0
-    if direction%4 == 0 or direction%4 == 3 then
-      f1 = 1
-      f2 = grid.countX
-      f3 = 1
-    else
-      f1 = grid.countX
-      f2 = 1
-      f3 = -1
-    end
-
-    for x=f1, f2, f3 do
-      for y=f1, f2, f3 do
-        love.graphics.setLineWidth(3)
-        local tx, ty = p3d({z=grid.tileSize*x-grid.oX, y=0, x=grid.tileSize*y-grid.oY}, camera.dir)
-        love.graphics.rectangle('line', tx, ty, grid.tileSize, grid.tileSize/2)
-        -- love.graphics.print('2', tx, ty, nil, 3)
-      end
-    end
-    --love.graphics.translate(grid.oX, grid.oY/2)
+  
+  --love.graphics.translate(-grid.oX, -grid.oY/2)
+  local f1, f2, f3 = 0,0,0
+  if direction%4 == 0 or direction%4 == 3 then
+    f1 = 1
+    f2 = grid.countX
+    f3 = 1
+  else
+    f1 = grid.countX
+    f2 = 1
+    f3 = -1
   end
+
+  for x=f1, f2, f3 do
+    for y=f1, f2, f3 do
+      love.graphics.setLineWidth(3)
+      local tx, ty = p3d({z=grid.tileSize*x-grid.oX, y=0, x=grid.tileSize*y-grid.oY}, camera.dir)
+      if love.keyboard.isDown('`') then
+        love.graphics.rectangle('line', tx, ty, grid.tileSize, grid.tileSize/2)
+      end
+      love.graphics.translate(tx, ty)
+      if grid[x][y] then
+        grid[x][y]:draw()
+      end
+      love.graphics.translate(-tx, -ty)
+    end
+  end
+  --love.graphics.translate(grid.oX, grid.oY/2)
+  
 
   table.sort(entities, function(a,b)
     local _, _, az = p3d({x=a.z, y=0, z=a.x}, camera.dir)
