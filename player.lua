@@ -91,10 +91,10 @@ function entity.new(camera)
         end
         love.graphics.setLineWidth(8)
         x,y,z = p3d({x=0, y=-12, z=6})
-        x1,y1,z1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2)*12, y=-12+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=6})
+        x1,y1,z1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2-player.armSway/2)*12, y=-12+math.cos(math.sin(player.animFrame)*math.pi/2-player.armSway/2)*12, z=6})
         love.graphics.line(x, y, x1, y1) -- left leg
         x,y,z = p3d({x=0, y=-12, z=-6})
-        x1,y1,z1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2)*12, y=-12+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=-6})
+        x1,y1,z1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2+player.armSway/2)*12, y=-12+math.cos(math.sin(player.animFrame)*math.pi/2+player.armSway/2)*12, z=-6})
         love.graphics.line(x, y, x1, y1)
 
         _, _, self.z = p3d({x=0, y=-12, z=0})
@@ -229,7 +229,7 @@ function entity.new(camera)
       id='item',
       z=8,
       draw = function(self)
-        x,y = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=-20})
+        x,y = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2+player.armSway)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2+player.armSway)*12, z=-20})
         love.graphics.setColour(1,1,1)
         love.graphics.draw(player.inventory.mesh, x, y, nil, 0.5, nil, 0)
         player.inventory.mesh:setVertices(player.inventory.vertices())
@@ -250,6 +250,7 @@ function entity.new(camera)
 
   function player:draw()
     local tx, ty = p3d({x=self.z, y=self.y, z=self.x}, self.camera.dir)
+    tx, ty = tx+math.sin(self.dir)*self.armSway*-5, ty+math.cos(self.dir)*self.armSway*0.5*-5
   	love.graphics.translate(tx, ty)
 
     table.sort(self.objects, function(a,b) 
@@ -358,7 +359,9 @@ function entity.new(camera)
   end
 
   function love.mousepressed(b)
-    player.attackTimer = 0
+    if player.attackTimer > 0.5 then
+      player.attackTimer = 0
+    end
   end
 
   return player
