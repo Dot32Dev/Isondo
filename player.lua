@@ -3,7 +3,7 @@ local items = require('items')
 local entity = {}
 
 function entity.new(camera)
-  local player = {id = 'player', dir = 0, x = 0, y = 0, z = 0, xV = 0, yV = 0, zV = 0, animFrame = 0, wet = -0, shadow = 20}
+  local player = {id = 'player', dir = 0, x = 0, y = 0, z = 0, xV = 0, yV = 0, zV = 0, animFrame = 0, wet = -0, shadow = 20, itemDir1 = 0, itemDir2 = 0, attackTimer = 10, attackAnimation = {}, armSway = 0}
   player.camera = camera or {x=love.graphics.getWidth()/2, y=0, z=love.graphics.getHeight()/2, dir=0}
 
   local function p3d(p, rotation, dontProject) -- p = {x= , y= , z= } (x/z may be swapped around (?))
@@ -22,6 +22,22 @@ function entity.new(camera)
     return x,y,z
   end
 
+  player.attackAnimation = {
+    {0, 0, 0, 0}, -- {attackTimer, itemDir1, itemDir2, armSway}
+    {0.05, -math.pi/3, math.pi/3, -math.pi/2},
+    {0.2, math.pi/3, 0, math.pi/2},
+    {0.4, 0, 0, 0},
+  }
+
+  local function attackAnimationKey()
+    for i=1, #player.attackAnimation do
+      if player.attackAnimation[i][1] > player.attackTimer then
+        return i-1
+      end
+    end
+    return #player.attackAnimation
+  end
+
   player.inventory = {
     selected = 1,
     vertices = function() -- generates the vertices for a mesh to contain the item image
@@ -35,16 +51,19 @@ function entity.new(camera)
       brx, bry = img:getWidth(), img:getHeight()/2
       blx, bly = 0, img:getHeight()/2
 
-      local dir = math.sin(player.animFrame)*math.pi/4+math.pi/4
+      player.itemDir2 = player.itemDir2+ (player.attackAnimation[attackAnimationKey()][3]-player.itemDir2)*0.5
+      local dir = math.sin(player.animFrame)*math.pi/4+math.pi/4*math.sqrt(player.xV^2+player.yV^2)/8.57 + player.itemDir2
       tlx, tly = p3d({x=tly, y=0, z=tlx}, dir, 0)
       trx, try = p3d({x=try, y=0, z=trx}, dir, 0)
       brx, bry = p3d({x=bry, y=0, z=brx}, dir, 0)
       blx, bly = p3d({x=bly, y=0, z=blx}, dir, 0)
 
-      tlx, tly = p3d({x=tlx, y=tly, z=0})
-      trx, try = p3d({x=trx, y=try, z=0})
-      brx, bry = p3d({x=brx, y=bry, z=0})
-      blx, bly = p3d({x=blx, y=bly, z=0})
+      player.itemDir1 = player.itemDir1+ (player.attackAnimation[attackAnimationKey()][2]-player.itemDir1)*0.5
+      dir = player.dir+player.itemDir1
+      tlx, tly = p3d({x=tlx, y=tly, z=0}, dir)
+      trx, try = p3d({x=trx, y=try, z=0}, dir)
+      brx, bry = p3d({x=brx, y=bry, z=0}, dir)
+      blx, bly = p3d({x=blx, y=bly, z=0}, dir)
 
       return {{tlx, tly, 0,0},{trx, try, 1,0},{brx, bry, 1,1},{blx, bly, 0,1}}
     end,
@@ -89,8 +108,9 @@ function entity.new(camera)
         if player.wet < -23 then
           love.graphics.setColour(0.3*0.9*intro.globals.water.r, 0.6*0.9*intro.globals.water.g, 0.8*0.9*intro.globals.water.b)
         end
+        player.armSway = player.armSway+ (player.attackAnimation[attackAnimationKey()][4]-player.armSway)*0.5
         x,y,z = p3d({x=0, y=-24, z=20})
-        x1,y1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=20})
+        x1,y1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2-player.armSway)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2-player.armSway)*12, z=20})
         love.graphics.line(x, y, x1, y1)
 
         _, _, self.z = p3d({x=0, y=-24, z=20})
@@ -105,7 +125,7 @@ function entity.new(camera)
           love.graphics.setColour(0.3*0.9*intro.globals.water.r, 0.6*0.9*intro.globals.water.g, 0.8*0.9*intro.globals.water.b)
         end
         x,y,z = p3d({x=0, y=-24, z=-20})
-        x1,y1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=-20})
+        x1,y1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2+player.armSway)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2+player.armSway)*12, z=-20})
         love.graphics.line(x, y, x1, y1)
 
         -- love.graphics.setColour(1,1,1)
@@ -214,8 +234,12 @@ function entity.new(camera)
         love.graphics.draw(player.inventory.mesh, x, y, nil, 0.5, nil, 0)
         player.inventory.mesh:setVertices(player.inventory.vertices())
 
-        local height = -45
-        if (player.dir+math.pi/2) > math.pi/2*3 or (player.dir+math.pi/2) < math.pi/2 then
+        local height = -70
+        local cos = math.cos(player.dir+math.pi/2+player.itemDir1)
+        -- if (player.dir+math.pi/2+player.itemDir1) > math.pi/2*3  then--or (player.dir+math.pi/2+math.pi/4) <  -math.pi/2*3
+        --   height = -5
+        -- end
+        if cos>0 then
           height = -5
         end
 
@@ -265,7 +289,9 @@ function entity.new(camera)
     local tx, ty = p3d({z=self.x, y=0, x=self.z}, self.camera.dir)
     tx = tx + self.camera.x
     ty = ty + self.camera.z
-    self.dir = math.atan2((tx-love.mouse.getX()), (ty-love.mouse.getY())*2)+math.pi
+    self.dir = math.atan2((tx-love.mouse.getX()), (ty-love.mouse.getY())*2)+math.pi + player.armSway/4
+
+    player.attackTimer = player.attackTimer + dt
 
     if love.keyboard.isDown("r") then
       self.x = 0
@@ -326,9 +352,13 @@ function entity.new(camera)
     if self.wet < 0 then
       fall = 0.1
     end
-    self.animFrame = (moved and (self.animFrame + 8.57/50*60*dt)) or (self.animFrame % math.pi + (0-self.animFrame % math.pi)*fall)
+    self.animFrame = (moved and (self.animFrame + 8.57/50*60*dt)) or (self.animFrame % math.pi + (0-self.animFrame % math.pi)*60*dt *(1 / (1 + (dt*60*1/ fall))))
     self.y = -math.abs(math.sin(self.animFrame)*math.pi/2*10)
     self.wet = -0-self.y
+  end
+
+  function love.mousepressed(b)
+    player.attackTimer = 0
   end
 
   return player
