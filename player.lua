@@ -4,15 +4,20 @@ local entity = {}
 
 function entity.new(camera)
   local player = {id = 'player', dir = 0, x = 0, y = 0, z = 0, xV = 0, yV = 0, zV = 0, animFrame = 0, wet = -0, shadow = 20}
-  player.camera = camera or {love.graphics.getWidth()/2, love.graphics.getHeight()/2}
+  player.camera = camera or {x=love.graphics.getWidth()/2, y=0, z=love.graphics.getHeight()/2, dir=0}
 
-  local function p3d(p, rotation) -- p = {x= , y= , z= } (x/z may be swapped around (?))
+  local function p3d(p, rotation, dontProject) -- p = {x= , y= , z= } (x/z may be swapped around (?))
     rotation = rotation or player.dir -- rotation is a scalar that rotates around the y axis
 
-    local x = math.sin(rotation)*p.x 	 + 0   +	math.sin(rotation+math.pi/2)*p.z
-    local y = math.cos(rotation)*p.x/2 + p.y +	math.cos(rotation+math.pi/2)*p.z/2
+    local squish = 0.5
+    if dontProject then
+      squish = 1
+    end
 
-    local z = math.cos(rotation)*p.x 	 - p.y +	math.cos(rotation+math.pi/2)*p.z -- z is used for depth sorting
+    local x = math.sin(rotation)*p.x 	        + 0   +	math.sin(rotation+math.pi/2)*p.z
+    local y = math.cos(rotation)*p.x*squish   + p.y +	math.cos(rotation+math.pi/2)*p.z*squish 
+
+    local z = math.cos(rotation)*p.x 	        - p.y +	math.cos(rotation+math.pi/2)*p.z -- z is used for depth sorting
 
     return x,y,z
   end
@@ -25,15 +30,21 @@ function entity.new(camera)
         return {{-0,-0, 0,0},{0,-0, 1,0},{0,0, 1,1},{-0,0, 0,1}}
       end
 
-      tlx, tly, tlz = 0,-img:getHeight()/2, 0
-      trx, try, trz = img:getWidth(),-img:getHeight()/2, 0
-      brx, bry, brz = img:getWidth(), img:getHeight()/2, 0
-      blx, bly, blz = 0, img:getHeight()/2, 0
+      tlx, tly = 0,-img:getHeight()/2
+      trx, try = img:getWidth(),-img:getHeight()/2
+      brx, bry = img:getWidth(), img:getHeight()/2
+      blx, bly = 0, img:getHeight()/2
 
-      tlx, tly, tlz = p3d({x=tlx, y=tly, z=tlz})
-      trx, try, trz = p3d({x=trx, y=try, z=trz})
-      brx, bry, brz = p3d({x=brx, y=bry, z=brz})
-      blx, bly, blz = p3d({x=blx, y=bly, z=blz})
+      local dir = math.sin(player.animFrame)*math.pi/4+math.pi/4
+      tlx, tly = p3d({x=tly, y=0, z=tlx}, dir, 0)
+      trx, try = p3d({x=try, y=0, z=trx}, dir, 0)
+      brx, bry = p3d({x=bry, y=0, z=brx}, dir, 0)
+      blx, bly = p3d({x=bly, y=0, z=blx}, dir, 0)
+
+      tlx, tly = p3d({x=tlx, y=tly, z=0})
+      trx, try = p3d({x=trx, y=try, z=0})
+      brx, bry = p3d({x=brx, y=bry, z=0})
+      blx, bly = p3d({x=blx, y=bly, z=0})
 
       return {{tlx, tly, 0,0},{trx, try, 1,0},{brx, bry, 1,1},{blx, bly, 0,1}}
     end,
@@ -97,10 +108,10 @@ function entity.new(camera)
         x1,y1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=-20})
         love.graphics.line(x, y, x1, y1)
 
-        love.graphics.setColour(1,1,1)
-        --love.graphics.draw(items[player.inventory[1][1][1]].img, x1, y1, nil, 0.5, nil, 0, items[player.inventory[1][1][1]].img:getHeight()/2)
-        love.graphics.draw(player.inventory.mesh, x1, y1, nil, 0.5, nil, 0)
-        player.inventory.mesh:setVertices(player.inventory.vertices())
+        -- love.graphics.setColour(1,1,1)
+        -- --love.graphics.draw(items[player.inventory[1][1][1]].img, x1, y1, nil, 0.5, nil, 0, items[player.inventory[1][1][1]].img:getHeight()/2)
+        -- love.graphics.draw(player.inventory.mesh, x1, y1, nil, 0.5, nil, 0)
+        -- player.inventory.mesh:setVertices(player.inventory.vertices())
 
         _, _, self.z = p3d({x=0, y=-24, z=-20})
       end 
@@ -191,13 +202,30 @@ function entity.new(camera)
         love.graphics.setColour(0.9,0.7,0.6)
         love.graphics.ellipse("fill", 0, -44, 20/1.2, 19/1.2)
 
-        _, _, self.z = p3d({x=0, y=-44, z=0})
+        self.z = 44
       end 
-    }
+    },
+    {
+      id='item',
+      z=8,
+      draw = function(self)
+        x,y = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2)*12, z=-20})
+        love.graphics.setColour(1,1,1)
+        love.graphics.draw(player.inventory.mesh, x, y, nil, 0.5, nil, 0)
+        player.inventory.mesh:setVertices(player.inventory.vertices())
+
+        local height = -45
+        if (player.dir+math.pi/2) > math.pi/2*3 or (player.dir+math.pi/2) < math.pi/2 then
+          height = -5
+        end
+
+        _, _, self.z = p3d({x=0, y=height, z=-20})
+      end 
+    },
   }
 
   function player:draw()
-    local tx, ty = p3d({x=self.z, y=self.y, z=self.x}, self.camera.r)
+    local tx, ty = p3d({x=self.z, y=self.y, z=self.x}, self.camera.dir)
   	love.graphics.translate(tx, ty)
 
     table.sort(self.objects, function(a,b) 
@@ -205,6 +233,25 @@ function entity.new(camera)
     end)
     for i=1, #self.objects do
       self.objects[i]:draw()
+    end
+
+    if love.keyboard.isDown('`') then
+      love.graphics.setLineWidth(2)
+
+      love.graphics.setColour(1,0,0)
+      x, y = p3d({x=40, y=0, z=0})
+      love.graphics.line(0,0, x,y)
+
+      love.graphics.setColour(0,1,0)
+      x, y = p3d({x=0, y=-40, z=0})
+      love.graphics.line(0,0, x,y)
+
+      love.graphics.setColour(0,0,1)
+      x, y = p3d({x=0, y=0, z=40})
+      love.graphics.line(0,0, x,y)
+
+      love.graphics.setColour(0,0,0)
+      love.graphics.print(self.dir)
     end
     
     --love.graphics.setColour(0,0,0)
@@ -215,7 +262,7 @@ function entity.new(camera)
   end
 
   function player:update(dt)
-    local tx, ty = p3d({z=self.x, y=0, x=self.z}, self.camera.r)
+    local tx, ty = p3d({z=self.x, y=0, x=self.z}, self.camera.dir)
     tx = tx + self.camera.x
     ty = ty + self.camera.z
     self.dir = math.atan2((tx-love.mouse.getX()), (ty-love.mouse.getY())*2)+math.pi
@@ -230,26 +277,26 @@ function entity.new(camera)
     local moved = false
     if love.keyboard.isDown("left") or love.keyboard.isDown("a") then
       --self.xV = self.xV - acceleration*60*dt
-      self.xV = self.xV - math.cos(self.camera.r)*acceleration*60*dt
-      self.zV = self.zV - math.sin(self.camera.r)*acceleration*60*dt
+      self.xV = self.xV - math.cos(self.camera.dir)*acceleration*60*dt
+      self.zV = self.zV - math.sin(self.camera.dir)*acceleration*60*dt
       moved = true
     end
     if love.keyboard.isDown("right") or love.keyboard.isDown("d") then
       --self.xV = self.xV + acceleration*60*dt
-      self.xV = self.xV + math.cos(self.camera.r)*acceleration*60*dt
-      self.zV = self.zV + math.sin(self.camera.r)*acceleration*60*dt
+      self.xV = self.xV + math.cos(self.camera.dir)*acceleration*60*dt
+      self.zV = self.zV + math.sin(self.camera.dir)*acceleration*60*dt
       moved = true
     end
     if love.keyboard.isDown("up") or love.keyboard.isDown("w") then
       --self.zV = self.zV - acceleration*60*dt
-      self.xV = self.xV - math.cos(self.camera.r+math.pi/2)*acceleration*60*dt
-      self.zV = self.zV - math.sin(self.camera.r+math.pi/2)*acceleration*60*dt
+      self.xV = self.xV - math.cos(self.camera.dir+math.pi/2)*acceleration*60*dt
+      self.zV = self.zV - math.sin(self.camera.dir+math.pi/2)*acceleration*60*dt
       moved = true
     end
     if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
       --self.zV = self.zV + acceleration*60*dt
-      self.xV = self.xV + math.cos(self.camera.r+math.pi/2)*acceleration*60*dt
-      self.zV = self.zV + math.sin(self.camera.r+math.pi/2)*acceleration*60*dt
+      self.xV = self.xV + math.cos(self.camera.dir+math.pi/2)*acceleration*60*dt
+      self.zV = self.zV + math.sin(self.camera.dir+math.pi/2)*acceleration*60*dt
       moved = true
     end
     
