@@ -3,7 +3,25 @@ local items = require('items')
 local entity = {}
 
 function entity.new(camera)
-  local player = {id = 'player', dir = 0, x = 0, y = 0, z = 0, xV = 0, yV = 0, zV = 0, animFrame = 0, wet = -0, shadow = 20, itemDir1 = 0, itemDir2 = 0, attackTimer = 10, attackAnimation = {}, armSway = 0}
+  local player = {
+    id = 'player', 
+    dir = 0, 
+    x = 0, 
+    y = 0, 
+    z = 0, 
+    xV = 0, 
+    yV = 0, 
+    zV = 0, 
+    animFrame = 0, 
+    wet = -0, 
+    shadow = 20, 
+    itemDir1 = 0, 
+    itemDir2 = 0, 
+    attackTimer = 10, 
+    attackAnimation = {}, 
+    armSway = 0, 
+    attack = false,
+  }
   player.camera = camera or {x=love.graphics.getWidth()/2, y=0, z=love.graphics.getHeight()/2, dir=0}
 
   local function p3d(p, rotation, dontProject) -- p = {x= , y= , z= } (x/z may be swapped around (?))
@@ -27,6 +45,7 @@ function entity.new(camera)
     {0.05, -math.pi/3, math.pi/3, -math.pi/2},
     {0.2, math.pi/3, 0, math.pi/2},
     {0.4, 0, 0, 0},
+    damage = false
   }
 
   local function attackAnimationKey()
@@ -93,9 +112,11 @@ function entity.new(camera)
         x,y,z = p3d({x=0, y=-12, z=6})
         x1,y1,z1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2-player.armSway/2)*12, y=-12+math.cos(math.sin(player.animFrame)*math.pi/2-player.armSway/2)*12, z=6})
         love.graphics.line(x, y, x1, y1) -- left leg
+        love.graphics.ellipse('fill', x1, y1, 5, 2.5)
         x,y,z = p3d({x=0, y=-12, z=-6})
         x1,y1,z1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2+player.armSway/2)*12, y=-12+math.cos(math.sin(player.animFrame)*math.pi/2+player.armSway/2)*12, z=-6})
         love.graphics.line(x, y, x1, y1)
+        love.graphics.ellipse('fill', x1, y1, 5, 2.5)
 
         _, _, self.z = p3d({x=0, y=-12, z=0})
       end 
@@ -108,10 +129,18 @@ function entity.new(camera)
         if player.wet < -23 then
           love.graphics.setColour(0.3*0.9*intro.globals.water.r, 0.6*0.9*intro.globals.water.g, 0.8*0.9*intro.globals.water.b)
         end
-        player.armSway = player.armSway+ (player.attackAnimation[attackAnimationKey()][4]-player.armSway)*0.5
         x,y,z = p3d({x=0, y=-24, z=20})
-        x1,y1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2-player.armSway)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2-player.armSway)*12, z=20})
+        local dir = -math.sin(player.animFrame)*math.pi/2
+        if player.attackTimer < player.attackAnimation[#player.attackAnimation][1] then
+          dir = -player.armSway
+        end
+        x1,y1 = p3d({x=math.sin(dir)*12, y=-24+math.cos(math.sin(dir))*12, z=20})
+
         love.graphics.line(x, y, x1, y1)
+
+        love.graphics.circle('fill', x, y, 5)
+        love.graphics.setColour(0.9,0.7,0.6)
+        love.graphics.circle('fill', x1, y1, 5)
 
         _, _, self.z = p3d({x=0, y=-24, z=20})
       end 
@@ -125,13 +154,16 @@ function entity.new(camera)
           love.graphics.setColour(0.3*0.9*intro.globals.water.r, 0.6*0.9*intro.globals.water.g, 0.8*0.9*intro.globals.water.b)
         end
         x,y,z = p3d({x=0, y=-24, z=-20})
-        x1,y1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2+player.armSway)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2+player.armSway)*12, z=-20})
+        local dir = math.sin(player.animFrame)*math.pi/2
+        if player.attackTimer < player.attackAnimation[#player.attackAnimation][1] then
+          dir = player.armSway
+        end
+        x1,y1 = p3d({x=math.sin(dir)*12, y=-24+math.cos(math.sin(dir))*12, z=-20})
         love.graphics.line(x, y, x1, y1)
 
-        -- love.graphics.setColour(1,1,1)
-        -- --love.graphics.draw(items[player.inventory[1][1][1]].img, x1, y1, nil, 0.5, nil, 0, items[player.inventory[1][1][1]].img:getHeight()/2)
-        -- love.graphics.draw(player.inventory.mesh, x1, y1, nil, 0.5, nil, 0)
-        -- player.inventory.mesh:setVertices(player.inventory.vertices())
+        love.graphics.circle('fill', x, y, 5)
+        love.graphics.setColour(0.9,0.7,0.6)
+        love.graphics.circle('fill', x1, y1, 5)
 
         _, _, self.z = p3d({x=0, y=-24, z=-20})
       end 
@@ -229,7 +261,11 @@ function entity.new(camera)
       id='item',
       z=8,
       draw = function(self)
-        x,y = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2+player.armSway)*12, y=-24+math.cos(math.sin(player.animFrame)*math.pi/2+player.armSway)*12, z=-20})
+        local dir = math.sin(player.animFrame)*math.pi/2
+        if player.attackTimer < player.attackAnimation[#player.attackAnimation][1] then
+          dir = player.armSway
+        end
+        x,y = p3d({x=math.sin(dir)*12, y=-24+math.cos(math.sin(dir))*12, z=-20})
         love.graphics.setColour(1,1,1)
         love.graphics.draw(player.inventory.mesh, x, y, nil, 0.5, nil, 0)
         player.inventory.mesh:setVertices(player.inventory.vertices())
@@ -293,6 +329,14 @@ function entity.new(camera)
     self.dir = math.atan2((tx-love.mouse.getX()), (ty-love.mouse.getY())*2)+math.pi + player.armSway/4
 
     player.attackTimer = player.attackTimer + dt
+    if attackAnimationKey() == 3 and player.attackAnimation.damage then
+      player.camera.screenShake.xV = player.camera.screenShake.xV + math.sin(player.dir)*-5
+      player.camera.screenShake.yV = player.camera.screenShake.yV + math.cos(player.dir)*-5
+
+      player.attack = true
+      player.attackAnimation.damage = false
+    end
+    player.armSway = player.armSway+ (player.attackAnimation[attackAnimationKey()][4]-player.armSway)*0.5
 
     if love.keyboard.isDown("r") then
       self.x = 0
@@ -358,9 +402,30 @@ function entity.new(camera)
     self.wet = -0-self.y
   end
 
-  function love.mousepressed(b)
-    if player.attackTimer > 0.5 then
+  local function distance(x1,y1, x2,y2)
+    return math.sqrt((y2-y1)^2 + (x2-x1)^2)
+  end
+
+  local function angleDifference(a, b)
+    local difference = (a - b + math.pi) % (math.pi * 2) - math.pi
+    return (difference < -math.pi) and (difference + math.pi * 2) or difference
+  end
+
+  function player:damage(x, z, plrdir)
+    local dist = distance(x,z, self.x,self.z)
+    if dist < 100 and dist > 1 then
+      local dir = math.atan2(self.x-x, self.z-z)
+      if math.abs(angleDifference(dir, plrdir)) < math.pi/2 then
+        self.xV = self.xV + 15 * (self.x-x)/dist
+        self.zV = self.zV + 15 * (self.z-z)/dist
+      end
+    end
+  end
+
+  function love.mousepressed(x,y,b)
+    if player.attackTimer > 0.5 and b == 1 then
       player.attackTimer = 0
+      player.attackAnimation.damage = true
     end
   end
 
