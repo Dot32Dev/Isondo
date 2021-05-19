@@ -1,7 +1,7 @@
 local entity = {}
 
 function entity.new(camera, treeX, treeZ)
-  local tree = {id = 'tree', camera = camera, x = treeX or 60, y = 0, z = treeZ or 30, shadow = 20*1.3}
+  local tree = {id = 'tree', camera = camera, x = treeX or 60, y = 0, z = treeZ or 30, shadow = 20*1.3, health = 3, direction = 0, wobble = 0, wobbleV = 0}
 
   local function p3d(p, rotation)
     rotation = rotation or 0 -- rotation is a scalar that rotates around the y axis
@@ -35,6 +35,26 @@ function entity.new(camera, treeX, treeZ)
 
   function tree:update(dt)
 
+  end
+
+  local function distance(x1,y1, x2,y2)
+    return math.sqrt((y2-y1)^2 + (x2-x1)^2)
+  end
+
+  local function angleDifference(a, b)
+    local difference = (a - b + math.pi) % (math.pi * 2) - math.pi
+    return (difference < -math.pi) and (difference + math.pi * 2) or difference
+  end
+
+  function tree:damage(x, z, plrdir)
+    local dist = distance(x,z, self.x,self.z)
+    if dist < 100 and dist > 1 then
+      local dir = math.atan2(self.x-x, self.z-z)
+      if math.abs(angleDifference(dir, plrdir)) < math.pi/2 then
+        --self.x = self.x + 50 * (self.x-x)/dist
+        --self.z = self.z + 50 * (self.z-z)/dist
+      end
+    end
   end
 
   return tree
