@@ -1,7 +1,7 @@
 local entity = {}
 
 function entity.new(camera, treeX, treeZ)
-  local tree = {id = 'tree', camera = camera, x = treeX or 60, y = 0, z = treeZ or 30, shadow = 20*1.3, health = 3, direction = 0, wobble = 0, wobbleV = 0}
+  local tree = {id = 'tree', camera = camera, x = treeX or 60, y = 0, z = treeZ or 30, shadow = 20*1.3, health = 3, dir = 0, wobble = 0, wobbleV = 0, dead = false}
 
   local function p3d(p, rotation)
     rotation = rotation or 0 -- rotation is a scalar that rotates around the y axis
@@ -24,17 +24,27 @@ function entity.new(camera, treeX, treeZ)
 
     -- trunk
     local height = 50
-    love.graphics.rectangle("fill", -10, -height, 20, height)
+    love.graphics.setLineWidth(20)
+    local x,y = p3d({x=self.wobble, y=-height, z=0}, self.dir)
+    love.graphics.line(0,0, x,y)
 
     -- leaves
     love.graphics.setColour(0.38, 0.65, 0.42)
-    love.graphics.ellipse("fill", 0, -height+6, 20*1.3, 19*1.3) --1.3
+    love.graphics.ellipse("fill", x, y+6, 20*1.3, 19*1.3) --1.3
+
+    --love.graphics.print(self.wobbleV)
     
     love.graphics.translate(-tx, -ty)
   end
 
   function tree:update(dt)
+    self.wobbleV = self.wobbleV + (0-self.wobble)*0.2
+    self.wobbleV = self.wobbleV*0.7
+    self.wobble = self.wobble + self.wobbleV
 
+    if self.health < 1 then
+      self.dead = true
+    end
   end
 
   local function distance(x1,y1, x2,y2)
@@ -53,6 +63,9 @@ function entity.new(camera, treeX, treeZ)
       if math.abs(angleDifference(dir, plrdir)) < math.pi/2 then
         --self.x = self.x + 50 * (self.x-x)/dist
         --self.z = self.z + 50 * (self.z-z)/dist
+        self.dir = dir
+        self.wobbleV = 15
+        self.health = self.health - 1
       end
     end
   end
