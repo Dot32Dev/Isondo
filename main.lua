@@ -51,8 +51,11 @@ end
 function love.update(dt)
 	intro:update(dt)
 
-  for i=1, #entities do
+  for i=#entities, 1, -1 do
     entities[i]:update(dt)
+    if entities[i].dead then
+      table.remove(entities, i)
+    end
   end
 
   if player.attack then
