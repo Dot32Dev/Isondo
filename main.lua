@@ -4,23 +4,19 @@ local camera = {x=love.graphics.getWidth()/2, y=0, z=love.graphics.getHeight()/2
 camera.screenShake = {x=0, y=0, xV=0, yV=0}
 local direction = 0 -- (north = 0, east = 1, south = 2, west = 3)
 
-local tree = require('blocks/tree')
-local grid = {tileSize = 60, countX = 25, countY = 25}
-grid.oX, grid.oY = grid.countY/2*grid.tileSize, grid.countY/2*grid.tileSize
-for x=1, grid.countX do
-  grid[x] = {}
-  for y=1, grid.countY do
-    grid[x][y] = false
-    if love.math.random(1,20) == 1 then
-      grid[x][y] = tree.new()
-    end
-  end
-end
+-- local tree = require('blocks/tree')
+local grid = {tileSize = 50, countX = 25, countY = 25}
 
 local player = require('player')
+player = player.new(camera)
 local tree = require('tree')
 local entities = {}
-table.insert(entities, player.new(camera))
+table.insert(entities, player)
+for i=1, 30 do
+  table.insert(entities, tree.new(camera, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800))
+end
+
+
 
 local sword = love.graphics.newImage('items/sword.png')
 
@@ -48,6 +44,21 @@ local function p3d(p, rotation)
   return x,y,z --it is possible that i have messed up the x/z directions ¯\_(ツ)_/¯
 end
 
+-- function findPointOnGrid(x,y)
+--   x = x + grid.oX
+--   y = y + grid.oY
+
+--   x = x / grid.tileSize
+--   y = y / grid.tileSize
+
+--   differenceBetweenHalf = math.floor(y) - math.floor(y+0.5)
+
+--   x = math.floor(x)
+--   y = math.floor(y)
+
+--   return x,y,differenceBetweenHalf
+-- end
+
 function love.load()
   intro:init()
   --love.graphics.setBackgroundColour(142/255*intro.globals.water.r,183/255*intro.globals.water.g,130/255*intro.globals.water.b)
@@ -59,6 +70,10 @@ function love.update(dt)
 
   for i=1, #entities do
     entities[i]:update(dt)
+    -- local x,y,p = findPointOnGrid(entities[i].x, entities[i].y)
+    -- entities[i][2] = x
+    -- entities[i][3] = y
+    -- entities[i][4] = p
   end
 
   camera.dir = camera.dir + (direction*math.pi/2 - camera.dir)*60*dt *(1 / (1 + (dt*60*1/ 0.2)))
@@ -88,6 +103,28 @@ function love.draw()
       love.graphics.ellipse("fill", 0, 0, entities[i].shadow, entities[i].shadow/2)
       love.graphics.translate(-tx, -ty)
     end
+
+    -- local f1, f2, f3 = 0,0,0
+    -- if direction%4 == 0 or direction%4 == 3 then
+    --   f1 = 1
+    --   f2 = grid.countX
+    --   f3 = 1
+    -- else
+    --   f1 = grid.countX
+    --   f2 = 1
+    --   f3 = -1
+    -- end
+    -- for x=f1, f2, f3 do
+    --   for y=f1, f2, f3 do
+    --     love.graphics.setLineWidth(3)
+    --     local tx, ty = p3d({z=grid.tileSize*x-grid.oX, y=0, x=grid.tileSize*y-grid.oY}, camera.dir)
+    --     if grid[x][y] then
+    --       love.graphics.translate(tx+grid.tileSize/2, ty+grid.tileSize/4)
+    --       love.graphics.ellipse("fill", 0, 0, grid[x][y].shadow, grid[x][y].shadow/2)
+    --       love.graphics.translate(-tx-grid.tileSize/2, -ty-grid.tileSize/4)
+    --     end
+    --   end
+    -- end
   end
   love.graphics.setCanvas()
   love.graphics.setColour(1,1,1,0.1)
@@ -97,34 +134,43 @@ function love.draw()
   -- draw grid 
   
   --love.graphics.translate(-grid.oX, -grid.oY/2)
-  local f1, f2, f3 = 0,0,0
-  if direction%4 == 0 or direction%4 == 3 then
-    f1 = 1
-    f2 = grid.countX
-    f3 = 1
-  else
-    f1 = grid.countX
-    f2 = 1
-    f3 = -1
-  end
-
-  for x=f1, f2, f3 do
-    for y=f1, f2, f3 do
-      love.graphics.setLineWidth(3)
-      local tx, ty = p3d({z=grid.tileSize*x-grid.oX, y=0, x=grid.tileSize*y-grid.oY}, camera.dir)
-      if love.keyboard.isDown('`') then
-        love.graphics.rectangle('line', tx, ty, grid.tileSize, grid.tileSize/2)
-      end
-      love.graphics.translate(tx, ty)
-      if grid[x][y] then
-        grid[x][y]:draw()
-      end
-      love.graphics.translate(-tx, -ty)
-    end
-  end
+  -- local f1, f2, f3 = 0,0,0
+  -- if direction%4 == 0 or direction%4 == 3 then
+  --   f1 = 1
+  --   f2 = grid.countX
+  --   f3 = 1
+  -- else
+  --   f1 = grid.countX
+  --   f2 = 1
+  --   f3 = -1
+  -- end
+  -- for x=f1, f2, f3 do
+  --   for y=f1, f2, f3 do
+  --     love.graphics.setLineWidth(3)
+  --     local tx, ty = p3d({z=grid.tileSize*x-grid.oX, y=0, x=grid.tileSize*y-grid.oY}, camera.dir)
+  --     if love.keyboard.isDown('`') then
+  --       love.graphics.setColour(1,1,1,0.1)
+  --       love.graphics.rectangle('line', tx, ty, grid.tileSize, grid.tileSize/2)
+  --     end
+  --     for i=1, #entities do
+  --       if entities[i][4] == 0 and entities[i][2] == x and entities[i][3] == y then
+  --         entities[i]:draw()
+  --       end
+  --     end
+  --     if grid[x][y] then
+  --       love.graphics.translate(tx+grid.tileSize/2, ty+grid.tileSize/4)
+  --       grid[x][y]:draw()
+  --       love.graphics.translate(-tx-grid.tileSize/2, -ty-grid.tileSize/4)
+  --     end
+  --     for i=1, #entities do
+  --       if entities[i][4] == -1 and entities[i][2] == x and entities[i][3] == y then
+  --         entities[i]:draw()
+  --       end
+  --     end
+  --   end
+  -- end
   --love.graphics.translate(grid.oX, grid.oY/2)
   
-
   table.sort(entities, function(a,b)
     local _, _, az = p3d({x=a.z, y=0, z=a.x}, camera.dir)
     local _, _, bz = p3d({x=b.z, y=0, z=b.x}, camera.dir)
@@ -133,6 +179,8 @@ function love.draw()
   for i=1, #entities do
     entities[i]:draw()
   end
+
+
   ----love.graphics.polygon('fill',0,0, 5,-5, 10,-5, 10,-10, 15,-15, 20,-10, 20,-5, 50,-5, 55,0, 50,5, 20,5, 20,10, 15,15, 10,10, 10,5, 5,5)
   --love.graphics.polygon('fill', 0,0, 5,-5, 50,-5, 55,0, 50,5, 5,5)
   --love.graphics.polygon('fill', 15,-15, 20,-10, 20,10, 15,15, 10,10, 10,-10)
@@ -157,7 +205,9 @@ function love.draw()
 
   -- pprint(camera.x)
   -- pprint(camera.z, 0, 20)
-  pprint(direction%4)
+  --local x,y,p = findPointOnGrid(player.x,player.z)
+  --pprint(x.." "..y.." "..p)
+  -- pprint(entities[1][3])
 
   intro:draw()
 end
