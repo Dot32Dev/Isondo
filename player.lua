@@ -64,12 +64,12 @@ function entity.new(camera)
     selected = 1,
     vertices = function() -- generates the vertices for a mesh to contain the item image
       local img = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].img) or false
-      local _type = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].type) or false
+      local itemType = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].type) or false
       if not img then 
         return {{-0,-0, 0,0},{0,-0, 1,0},{0,0, 1,1},{-0,0, 0,1}}
       end
 
-      if _type == "sword" then
+      if itemType == "sword" then
         tlx, tly = 0,-img:getHeight()/2
         trx, try = img:getWidth(),-img:getHeight()/2
         brx, bry = img:getWidth(), img:getHeight()/2
@@ -83,7 +83,7 @@ function entity.new(camera)
 
       player.itemDir2 = player.itemDir2+ (player.attackAnimation[attackAnimationKey()][3]-player.itemDir2)*0.5
       local dir = 0
-      if _type == "sword" then
+      if itemType == "sword" then
         dir = math.sin(player.animFrame)*math.pi/4+math.pi/4*math.sqrt(player.xV^2+player.yV^2)/8.57
       end
       tlx, tly = p3d({x=tly, y=0, z=tlx}, dir+ player.itemDir2, 0)
@@ -103,9 +103,25 @@ function entity.new(camera)
   }
 
   player.inventory[1] = {1} -- "{1}" is the index to an item in the items table
-  player.inventory[2] = {2}
+  --player.inventory[2] = {2}
   for i=1, 10-#player.inventory do -- ensures 10 items
     table.insert(player.inventory, {}) -- insert empty table
+  end
+
+  player.inventory.add = function(index)
+    local added = false
+    for i=1, #player.inventory do
+      if player.inventory[i][1] == index and not added then
+        player.inventory[i][2] = (player.inventory[i][2] and player.inventory[i][2]+1) or 2
+        added = true
+        break
+      end
+      if not player.inventory[i][1] and not added  then
+        player.inventory[i][1] = index
+        added = true
+        break
+      end
+    end
   end
 
   player.inventory.mesh = love.graphics.newMesh(player.inventory.vertices(), "fan", "stream")
@@ -282,7 +298,7 @@ function entity.new(camera)
           dir = player.armSway
         end
         x,y = p3d({x=math.sin(dir)*12, y=-24+math.cos(math.sin(dir))*12, z=-20})
-        local _type = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].type) or false
+        --local itemType = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].type) or false
         love.graphics.setColour(1,1,1)
         love.graphics.draw(player.inventory.mesh, x, y, nil, 0.5, nil, 0)
         player.inventory.mesh:setVertices(player.inventory.vertices())
@@ -308,7 +324,7 @@ function entity.new(camera)
     self.dir = math.atan2((tx-love.mouse.getX()), (ty-love.mouse.getY())*2)+math.pi + player.armSway/4
 
     self.attackTimer = self.attackTimer + dt
-    local itemType = (self.inventory[i][1] and items[self.inventory[i][1]].type) or false
+    local itemType = (self.inventory[self.inventory.selected][1] and items[self.inventory[self.inventory.selected][1]].type) or false
     if attackAnimationKey() == 3 and self.attackAnimation.damage and itemType == "sword" then
       self.camera.screenShake.xV = self.camera.screenShake.xV + math.sin(self.dir)*-5
       self.camera.screenShake.yV = self.camera.screenShake.yV + math.cos(self.dir)*-5
@@ -325,7 +341,7 @@ function entity.new(camera)
     end
 
     if love.mouse.isDown(1) then
-      if player.attackTimer > 0.5 then
+      if player.attackTimer > 0.5 and itemType ~= "material" then
         player.attackTimer = 0
         player.attackAnimation.damage = true
       end
@@ -485,6 +501,10 @@ function entity.new(camera)
       if img then
         love.graphics.setColour(1,1,1)
         love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale, 0.25*scale, img:getWidth()/2, img:getHeight()/2)
+      end
+
+      if player.inventory[i][2] then
+        love.graphics.print(player.inventory[i][2])
       end
     end
 

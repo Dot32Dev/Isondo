@@ -1,7 +1,8 @@
+local item = require('item')
 local entity = {}
 
 function entity.new(camera, treeX, treeZ)
-  local tree = {id = 'tree', camera = camera, x = treeX or 60, y = 0, z = treeZ or 30, shadow = 20*1.3, health = 3, dir = 0, wobble = 0, wobbleV = 0, dead = false}
+  local tree = {id = 'tree', camera = camera, x = treeX or 60, y = 0, z = treeZ or 30, shadow = 20*1.3, health = 3, dir = 0, wobble = 0, wobbleV = 0, dead = false, drops = true}
 
   local function p3d(p, rotation)
     rotation = rotation or 0 -- rotation is a scalar that rotates around the y axis
@@ -14,8 +15,39 @@ function entity.new(camera, treeX, treeZ)
     return x,y,z
   end
 
+  local function subSphere(point, perspective)
+    local perspective = perspective or 0
+    local vertices = {}
+    table.insert(vertices, {0, 0, 0.5, 0.5})
+
+    for i=0, 30 do
+      local angle = (i / 30)*math.pi*2
+
+      local x = math.cos(angle)
+      local y = math.sin(angle)
+
+      local multiply = 19/20
+      if y > point then
+        multiply = math.sqrt(1^2 - point^2)
+        x = x* multiply
+        y = y* multiply* perspective +point
+        
+        local len = math.sqrt(x^2 + y^2)
+        if len > 1 then
+          x = x / len
+          y = y / len
+        end
+      end
+
+      table.insert(vertices, {x*20*1.3, y*19*1.3})
+    end
+    return vertices
+  end
+
+  tree.mesh = love.graphics.newMesh(subSphere(0, 0.8))
+
   function tree:draw()
-    local tx, ty = p3d({x=self.z, y=self.y, z=self.x}, self.camera.dir)
+    local tx, ty = p3d({x=self.z*self.camera.scale, y=self.y*self.camera.scale, z=self.x*self.camera.scale}, self.camera.dir)
     love.graphics.translate(tx, ty)
 
     -- stump
@@ -28,9 +60,24 @@ function entity.new(camera, treeX, treeZ)
     local x,y = p3d({x=self.wobble, y=-height, z=0}, self.dir)
     love.graphics.line(0,0, x,y)
 
+    --shadowTrunk
+    if love.keyboard.isDown('/') then
+      love.graphics.setColour(0.53, 0.33, 0.29)
+      love.graphics.ellipse("fill", x/height*20, y/height*20, 10, 5)
+    end
+
     -- leaves
     love.graphics.setColour(0.38, 0.65, 0.42)
+    if love.keyboard.isDown('/') then
+      love.graphics.setColour(0.3, 0.54, 0.4)
+    end
     love.graphics.ellipse("fill", x, y+6, 20*1.3, 19*1.3) --1.3
+    if love.keyboard.isDown('/') then
+      love.graphics.setColour(0.38, 0.65, 0.42)
+      love.graphics.draw(tree.mesh, x, y+6)
+      love.graphics.setColour(0.47, 0.69, 0.45)
+      love.graphics.ellipse("fill", x, y-12, 6, 3)
+    end
 
     --love.graphics.print(self.wobbleV)
     
@@ -67,6 +114,14 @@ function entity.new(camera, treeX, treeZ)
         self.wobbleV = 15
         self.health = self.health - 1
       end
+    end
+  end
+
+  function tree:onDeath(entities, player)
+    if self.drops then
+      local xV = math.sin(self.dir)*5
+      local zV = math.cos(self.dir)*5
+      table.insert(entities, item.new(self.camera, player, 2, {x=self.x, z=self.z, xV=xV, zV=zV}))
     end
   end
 
