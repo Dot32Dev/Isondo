@@ -5,6 +5,7 @@ local entity = {}
 function entity.new(camera)
   local player = {
     id = 'player', 
+    
     dir = 0, 
     x = 0, 
     y = 0, 
@@ -12,9 +13,11 @@ function entity.new(camera)
     xV = 0, 
     yV = 0, 
     zV = 0, 
-    animFrame = 0, 
+    
     wet = -0, 
     shadow = 20, 
+
+    animFrame = 0, 
     itemDir1 = 0, 
     itemDir2 = 0, 
     attackTimer = 10, 
@@ -61,21 +64,32 @@ function entity.new(camera)
     selected = 1,
     vertices = function() -- generates the vertices for a mesh to contain the item image
       local img = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].img) or false
+      local _type = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].type) or false
       if not img then 
         return {{-0,-0, 0,0},{0,-0, 1,0},{0,0, 1,1},{-0,0, 0,1}}
       end
 
-      tlx, tly = 0,-img:getHeight()/2
-      trx, try = img:getWidth(),-img:getHeight()/2
-      brx, bry = img:getWidth(), img:getHeight()/2
-      blx, bly = 0, img:getHeight()/2
+      if _type == "sword" then
+        tlx, tly = 0,-img:getHeight()/2
+        trx, try = img:getWidth(),-img:getHeight()/2
+        brx, bry = img:getWidth(), img:getHeight()/2
+        blx, bly = 0, img:getHeight()/2
+      else
+        tlx, tly = -img:getHeight()/4,-img:getHeight()/4
+        trx, try = img:getWidth()/4,-img:getHeight()/4
+        brx, bry = img:getWidth()/4, img:getHeight()/4
+        blx, bly = -img:getHeight()/4, img:getHeight()/4
+      end
 
       player.itemDir2 = player.itemDir2+ (player.attackAnimation[attackAnimationKey()][3]-player.itemDir2)*0.5
-      local dir = math.sin(player.animFrame)*math.pi/4+math.pi/4*math.sqrt(player.xV^2+player.yV^2)/8.57 + player.itemDir2
-      tlx, tly = p3d({x=tly, y=0, z=tlx}, dir, 0)
-      trx, try = p3d({x=try, y=0, z=trx}, dir, 0)
-      brx, bry = p3d({x=bry, y=0, z=brx}, dir, 0)
-      blx, bly = p3d({x=bly, y=0, z=blx}, dir, 0)
+      local dir = 0
+      if _type == "sword" then
+        dir = math.sin(player.animFrame)*math.pi/4+math.pi/4*math.sqrt(player.xV^2+player.yV^2)/8.57
+      end
+      tlx, tly = p3d({x=tly, y=0, z=tlx}, dir+ player.itemDir2, 0)
+      trx, try = p3d({x=try, y=0, z=trx}, dir+ player.itemDir2, 0)
+      brx, bry = p3d({x=bry, y=0, z=brx}, dir+ player.itemDir2, 0)
+      blx, bly = p3d({x=bly, y=0, z=blx}, dir+ player.itemDir2, 0)
 
       player.itemDir1 = player.itemDir1+ (player.attackAnimation[attackAnimationKey()][2]-player.itemDir1)*0.5
       dir = player.dir+player.itemDir1
@@ -89,6 +103,7 @@ function entity.new(camera)
   }
 
   player.inventory[1] = {1} -- "{1}" is the index to an item in the items table
+  player.inventory[2] = {2}
   for i=1, 10-#player.inventory do -- ensures 10 items
     table.insert(player.inventory, {}) -- insert empty table
   end
@@ -171,7 +186,8 @@ function entity.new(camera)
     {
       id='body',
       z=4,
-      vertices = function(self, point)
+      vertices = function(self, point, perspective)
+        local perspective = perspective or 0
         local vertices = {}
         table.insert(vertices, {0, 0, 0.5, 0.5})
 
@@ -185,7 +201,7 @@ function entity.new(camera)
           if y > point then
             multiply = math.sqrt(1^2 - point^2)
             x = x* multiply
-            y = y* multiply* 0.5 +point
+            y = y* multiply* perspective +point
             
             local len = math.sqrt(x^2 + y^2)
             if len > 1 then
@@ -266,6 +282,7 @@ function entity.new(camera)
           dir = player.armSway
         end
         x,y = p3d({x=math.sin(dir)*12, y=-24+math.cos(math.sin(dir))*12, z=-20})
+        local _type = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].type) or false
         love.graphics.setColour(1,1,1)
         love.graphics.draw(player.inventory.mesh, x, y, nil, 0.5, nil, 0)
         player.inventory.mesh:setVertices(player.inventory.vertices())
@@ -284,64 +301,34 @@ function entity.new(camera)
     },
   }
 
-  function player:draw()
-    local tx, ty = p3d({x=self.z, y=self.y, z=self.x}, self.camera.dir)
-    tx, ty = tx+math.sin(self.dir)*self.armSway*-5, ty+math.cos(self.dir)*self.armSway*0.5*-5
-  	love.graphics.translate(tx, ty)
-
-    table.sort(self.objects, function(a,b) 
-      return (a.z < b.z)
-    end)
-    for i=1, #self.objects do
-      self.objects[i]:draw()
-    end
-
-    if love.keyboard.isDown('`') then
-      love.graphics.setLineWidth(2)
-
-      love.graphics.setColour(1,0,0)
-      x, y = p3d({x=40, y=0, z=0})
-      love.graphics.line(0,0, x,y)
-
-      love.graphics.setColour(0,1,0)
-      x, y = p3d({x=0, y=-40, z=0})
-      love.graphics.line(0,0, x,y)
-
-      love.graphics.setColour(0,0,1)
-      x, y = p3d({x=0, y=0, z=40})
-      love.graphics.line(0,0, x,y)
-
-      love.graphics.setColour(0,0,0)
-      love.graphics.print(self.dir)
-    end
-    
-    --love.graphics.setColour(0,0,0)
-    --local vLength = math.sqrt(self.xV^2 + self.zV^2)
-    --love.graphics.print(vLength)
-    
-    love.graphics.translate(-tx, -ty)
-  end
-
   function player:update(dt)
-    local tx, ty = p3d({z=self.x, y=0, x=self.z}, self.camera.dir)
-    tx = tx + self.camera.x
-    ty = ty + self.camera.z
+    local tx, ty = p3d({z=self.x*self.camera.scale, y=0, x=self.z*self.camera.scale}, self.camera.dir)
+    tx = tx + self.camera.x + love.graphics.getWidth()/2
+    ty = ty + self.camera.z + love.graphics.getHeight()/2
     self.dir = math.atan2((tx-love.mouse.getX()), (ty-love.mouse.getY())*2)+math.pi + player.armSway/4
 
-    player.attackTimer = player.attackTimer + dt
-    if attackAnimationKey() == 3 and player.attackAnimation.damage then
-      player.camera.screenShake.xV = player.camera.screenShake.xV + math.sin(player.dir)*-5
-      player.camera.screenShake.yV = player.camera.screenShake.yV + math.cos(player.dir)*-5
+    self.attackTimer = self.attackTimer + dt
+    local itemType = (self.inventory[i][1] and items[self.inventory[i][1]].type) or false
+    if attackAnimationKey() == 3 and self.attackAnimation.damage and itemType == "sword" then
+      self.camera.screenShake.xV = self.camera.screenShake.xV + math.sin(self.dir)*-5
+      self.camera.screenShake.yV = self.camera.screenShake.yV + math.cos(self.dir)*-5
 
-      player.attack = true
-      player.attackAnimation.damage = false
+      self.attack = true
+      self.attackAnimation.damage = false
     end
-    player.armSway = player.armSway+ (player.attackAnimation[attackAnimationKey()][4]-player.armSway)*0.5
+    self.armSway = self.armSway+ (self.attackAnimation[attackAnimationKey()][4]-self.armSway)*0.5
 
     if love.keyboard.isDown("r") then
       self.x = 0
       self.y = 0
       self.z = 0
+    end
+
+    if love.mouse.isDown(1) then
+      if player.attackTimer > 0.5 then
+        player.attackTimer = 0
+        player.attackAnimation.damage = true
+      end
     end
 
     local acceleration = 2
@@ -402,6 +389,44 @@ function entity.new(camera)
     self.wet = -0-self.y
   end
 
+  function player:draw()
+    local tx, ty = p3d({x=self.z, y=self.y, z=self.x}, self.camera.dir)
+    tx, ty = tx+math.sin(self.dir)*self.armSway*-5, ty+math.cos(self.dir)*self.armSway*0.5*-5
+    love.graphics.translate(tx, ty)
+
+    table.sort(self.objects, function(a,b) 
+      return (a.z < b.z)
+    end)
+    for i=1, #self.objects do
+      self.objects[i]:draw()
+    end
+
+    if love.keyboard.isDown('`') then
+      love.graphics.setLineWidth(2)
+
+      love.graphics.setColour(1,0,0)
+      x, y = p3d({x=40, y=0, z=0})
+      love.graphics.line(0,0, x,y)
+
+      love.graphics.setColour(0,1,0)
+      x, y = p3d({x=0, y=-40, z=0})
+      love.graphics.line(0,0, x,y)
+
+      love.graphics.setColour(0,0,1)
+      x, y = p3d({x=0, y=0, z=40})
+      love.graphics.line(0,0, x,y)
+
+      love.graphics.setColour(0,0,0)
+      love.graphics.print(self.dir)
+    end
+    
+    --love.graphics.setColour(0,0,0)
+    --local vLength = math.sqrt(self.xV^2 + self.zV^2)
+    --love.graphics.print(vLength)
+    
+    love.graphics.translate(-tx, -ty)
+  end
+
   local function distance(x1,y1, x2,y2)
     return math.sqrt((y2-y1)^2 + (x2-x1)^2)
   end
@@ -422,11 +447,60 @@ function entity.new(camera)
     end
   end
 
-  function love.mousepressed(x,y,b)
-    if player.attackTimer > 0.5 and b == 1 then
-      player.attackTimer = 0
-      player.attackAnimation.damage = true
+  function player:drawInventory(scale)
+    local scale = scale or 1--1.2
+
+    local x = love.graphics.getWidth()/2
+    local y = love.graphics.getHeight()-35
+    --love.graphics.circle('fill', x, y, 10)
+
+    love.graphics.translate(x,y)
+
+    local tSize = 40*scale
+    local aSize = 30*scale
+    local bSize = tSize--*scale
+    local count = 10
+    local tx = -count*tSize/2--*scale
+
+    love.graphics.setColour(0.2,0.25,0.3, 1)
+    love.graphics.rectangle('fill', tx+bSize/2-(tSize-aSize)/2, -bSize/2-(tSize-aSize)/2, bSize*count+(tSize-aSize), bSize+(tSize-aSize)+50, 15*scale)
+
+    love.graphics.translate(tx, 0)
+    for i=1, count do
+      love.graphics.setLineWidth(2*scale)
+      love.graphics.translate(tSize, 0)
+      tx = tx + tSize
+
+      love.graphics.setColour(0.2,0.25,0.3, 1)
+      love.graphics.rectangle('fill', -bSize/2, -bSize/2, bSize, bSize, 25*scale)
+      love.graphics.setColour(1,1,1, 0.5)
+      if player.inventory.selected == i then
+        love.graphics.setLineWidth(3*scale)
+        love.graphics.setColour(1,1,1)
+      end
+      love.graphics.rectangle('line', -aSize/2, -aSize/2, aSize, aSize, 5*scale)
+
+      local img = (player.inventory[i][1] and items[player.inventory[i][1]].img) or false
+      -- local itemType = (player.inventory[i][1] and items[player.inventory[i][1]].type) or false
+      if img then
+        love.graphics.setColour(1,1,1)
+        love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale, 0.25*scale, img:getWidth()/2, img:getHeight()/2)
+      end
     end
+
+    love.graphics.translate(-x-tx,-y)
+  end
+
+  function love.mousepressed(x,y,b)
+    
+  end
+
+  function love.wheelmoved(x, y)
+    player.inventory.selected = (player.inventory.selected + y -1) % #player.inventory + 1
+    if player.inventory[player.inventory.selected][1] then -- if the selected item isnt pointing to an empty table
+      player.inventory.mesh:setTexture(items[player.inventory[player.inventory.selected][1]].img)
+    end
+    print(player.inventory.selected)
   end
 
   return player

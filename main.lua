@@ -1,6 +1,6 @@
 local intro = require("intro")
 
-local camera = {x=love.graphics.getWidth()/2, y=0, z=love.graphics.getHeight()/2, dir=0}
+local camera = {x=0, y=0, z=0, dir=0, scale = 1}
 camera.screenShake = {x=0, y=0, xV=0, yV=0}
 local direction = 0 -- (north = 0, east = 1, south = 2, west = 3)
 
@@ -14,6 +14,11 @@ local entities = {}
 table.insert(entities, player)
 for i=1, 30 do
   table.insert(entities, tree.new(camera, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800))
+  for j=1, #entities do
+    if entities[i].x == entities[j].x and entities[i].y == entities[j].y and i ~= j then
+      entities[i].dead = true
+    end
+  end
 end
 
 local sword = love.graphics.newImage('items/sword.png')
@@ -85,11 +90,11 @@ function love.draw()
 
     love.graphics.ellipse("fill", love.mouse.getX(), love.mouse.getY(), 20, 10)
 
-    love.graphics.translate(camera.x+camera.screenShake.x, camera.z+camera.screenShake.y)-- Camera +
+    love.graphics.translate(camera.x+camera.screenShake.x+love.graphics.getWidth()/2, camera.z/2+camera.screenShake.y/2+love.graphics.getHeight()/2)-- Camera +
 
     love.graphics.setColour(0,0.2,0.1,1)
     for i=1, #entities do
-      local tx, ty = p3d({x=entities[i].z, y=0, z=entities[i].x}, camera.dir)
+      local tx, ty = p3d({x=entities[i].z*camera.scale, y=0, z=entities[i].x*camera.scale}, camera.dir)
       love.graphics.translate(tx, ty)
       love.graphics.ellipse("fill", 0, 0, entities[i].shadow, entities[i].shadow/2)
       love.graphics.translate(-tx, -ty)
@@ -97,7 +102,7 @@ function love.draw()
   end
   love.graphics.setCanvas()
   love.graphics.setColour(1,1,1,0.1)
-  love.graphics.draw(shadowMap, -camera.x-camera.screenShake.x, -camera.z-camera.screenShake.y)
+  love.graphics.draw(shadowMap, -camera.x-camera.screenShake.x-love.graphics.getWidth()/2, -camera.z/2-camera.screenShake.y/2-love.graphics.getHeight()/2)
   
   table.sort(entities, function(a,b)
     local _, _, az = p3d({x=a.z, y=0, z=a.x}, camera.dir)
@@ -114,10 +119,10 @@ function love.draw()
   --love.graphics.polygon('fill', 15,-15, 20,-10, 20,10, 15,15, 10,10, 10,-10)
   --love.graphics.draw(sword, entities[1].x, entities[1].y, nil, 0.5)
 
-  love.graphics.translate(-camera.x-camera.screenShake.x, -camera.z-camera.screenShake.y)-- Camera -
+  love.graphics.translate( -camera.x-camera.screenShake.x-love.graphics.getWidth()/2, -camera.z/2-camera.screenShake.y/2-love.graphics.getHeight()/2)-- Camera -
   local f = love.graphics.getFont()
 
-  do local compass = {size=30, x=love.graphics.getWidth()-80, y=love.graphics.getHeight()-80}
+  do local compass = {size=30, x=love.graphics.getWidth()-80, y=80}--{size=30, x=love.graphics.getWidth()-80, y=love.graphics.getHeight()-80}
     love.graphics.setLineWidth(2)
     love.graphics.setColour(1,1,1, 0.3)
     love.graphics.circle('line', compass.x, compass.y, compass.size)
@@ -133,13 +138,14 @@ function love.draw()
 
   -- pprint(camera.x)
   -- pprint(camera.z, 0, 20)
+  pprint(player.inventory.selected)
+
+  player:drawInventory()
 
   intro:draw()
 end
 
 function love.resize()
-  camera.x = love.graphics.getWidth()/2
-  camera.z = love.graphics.getHeight()/2
   shadowMap = love.graphics.newCanvas()
 end
 
