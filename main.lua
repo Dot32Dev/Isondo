@@ -12,11 +12,12 @@ local player = require('player')
 local tree = require('tree')
 local entities = {}
 table.insert(entities, player)
-for i=1, 30 do
+for i=1, 60 do
   table.insert(entities, tree.new(camera, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800))
   for j=1, #entities do
     if entities[i].x == entities[j].x and entities[i].y == entities[j].y and i ~= j then
       entities[i].dead = true
+      entities[i].drops = false
     end
   end
 end
@@ -59,6 +60,9 @@ function love.update(dt)
   for i=#entities, 1, -1 do
     entities[i]:update(dt)
     if entities[i].dead then
+      if entities[i].onDeath then 
+        entities[i]:onDeath(entities, player) 
+      end
       table.remove(entities, i)
     end
   end
@@ -138,7 +142,8 @@ function love.draw()
 
   -- pprint(camera.x)
   -- pprint(camera.z, 0, 20)
-  pprint(player.inventory.selected)
+  --pprint(#entities)
+  pprint(#player.inventory)--intro.varToString()
 
   player:drawInventory()
 
