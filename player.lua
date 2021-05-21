@@ -117,6 +117,8 @@ function entity.new(camera)
 				added = true
 				break
 			end
+		end
+		for i=1, #player.inventory do
 			if not player.inventory[i][1] and not added  then
 				player.inventory[i][1] = index
 				player.inventory[i][2] = 1
@@ -125,6 +127,8 @@ function entity.new(camera)
 			end
 		end
 	end
+
+	player.inventory.mouse = {}
 
 	player.inventory.mesh = love.graphics.newMesh(player.inventory.vertices(), "fan", "stream")
 	if player.inventory[player.inventory.selected][1] then -- if the selected item isnt pointing to an empty table
@@ -336,13 +340,15 @@ function entity.new(camera)
 		end
 		self.armSway = self.armSway+ (self.attackAnimation[attackAnimationKey()][4]-self.armSway)*0.5
 
+		player.inventory.update()
+
 		if love.keyboard.isDown("r") then
 			self.x = 0
 			self.y = 0
 			self.z = 0
 		end
 
-		if love.mouse.isDown(1) then
+		if love.mouse.isDown(1) and not player.inventory.open then
 			if player.attackTimer > 0.5 and itemType ~= "material" then
 				player.attackTimer = 0
 				player.attackAnimation.damage = true
@@ -465,6 +471,61 @@ function entity.new(camera)
 		end
 	end
 
+	function player.inventory.update(dt)
+		for i=1, #player.inventory do 
+			if player.inventory[i][2] then
+				player.inventory[i][2] = player.inventory[i][2] * 0.7
+			end
+			if player.inventory[i][3] and player.inventory[i][3] == 1 then 
+				player.inventory[i][3] = nil
+			end
+		end
+
+		player.inventory.hover = false
+		-- detect mouse hovering over hotbar
+		if player.inventory.open then
+			local scale = 1
+
+			local tSize = 40*scale
+			local aSize = 30*scale
+			local tx = -10*tSize/2
+
+			local x = love.mouse.getX()
+			local y = love.mouse.getY() 
+			for i=1, 10 do
+				if x > (tx+tSize*i+love.graphics.getWidth()/2-tSize/2) - tSize/2 and x < (tx+tSize*i+love.graphics.getWidth()/2-tSize/2) + tSize/2 
+				and y > (love.graphics.getHeight()-35) - tSize/2 and y < (love.graphics.getHeight()-35) + tSize/2 then
+					player.inventory.hover = i
+					if player.inventory[i][2] then
+						player.inventory[i][2] = player.inventory[i][2] + (0.5-player.inventory[i][2]) * 0.7
+					elseif  player.inventory[i][1] then
+						player.inventory[i][2] = 0
+					end
+				end
+			end
+			if not player.inventory.hover then
+				local i = 10
+				for iy=1, 3 do
+					for ix=1, 10 do
+						i = i + 1
+						if x > (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) - tSize/2 and x < (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) + tSize/2 
+						and y > (love.graphics.getHeight()-35-tSize*(3+2)+iy*tSize) - tSize/2 and y < (love.graphics.getHeight()-35-tSize*(3+2)+iy*tSize) + tSize/2 then
+							player.inventory.hover = i
+							if player.inventory[i][2] then
+								player.inventory[i][2] = player.inventory[i][2] + (0.5-player.inventory[i][2]) * 0.7
+							elseif  player.inventory[i][1] then
+								player.inventory[i][2] = 0
+							end
+						end
+					end
+				end
+			end
+			if player.inventory.mouse[3] and player.inventory.mouse[3] == 1 then 
+				player.inventory.mouse[3] = nil
+			end
+		end
+	end
+
 	function player.inventory.draw(scale)
 		local scale = scale or 1--1.2
 
@@ -509,9 +570,6 @@ function entity.new(camera)
 			if player.inventory[i][3] then
 				love.graphics.print(player.inventory[i][3], 3, nil, nil, 0.7)
 			end
-			if player.inventory[i][2] then
-				player.inventory[i][2] = player.inventory[i][2] * 0.7
-			end
 		end
 		love.graphics.translate(-x-tx,-y)
 		if player.inventory.open then
@@ -531,11 +589,12 @@ function entity.new(camera)
 
 		local f = love.graphics.getFont()
 		love.graphics.setColour(0.2,0.25,0.3, 1)
+		-- love.graphics.setColour(0.3,0.25,0.2, 1)
 		love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2-30, f:getWidth('Inventory')+(tSize-aSize), 60, 15*scale)
 		love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2, tSize*countX+(tSize-aSize), 3*tSize+(tSize-aSize), 15*scale)
 
 		love.graphics.setColour(1,1,1)
-		love.graphics.print('Inventory', bSize/2-countX*tSize/2, tSize/2-30, nil)
+		love.graphics.print('Inventory', bSize/2-countX*tSize/2+(f:getWidth('Inventory')-f:getWidth('Inventory')*0.7)/2, tSize/2-f:getHeight()-(tSize-aSize)/2, nil, 0.7)
 
 		local i = countX
 		for y=1, countY do
@@ -547,12 +606,40 @@ function entity.new(camera)
 				love.graphics.rectangle('line', -aSize/2, -aSize/2, aSize, aSize, 5*scale)
 
 				love.graphics.setColour(1,1,1)
-				local img = (player.inventory[i][1] and items[player.inventory[i][1]].img) or false
+				--local img = (player.inventory[i][1] and items[player.inventory[i][1]].img) or false
 				--if x*y*i % 3 == 0 then love.graphics.print(i-10, 3, nil, nil, 0.7) end
+
+				local img = (player.inventory[i][1] and items[player.inventory[i][1]].img) or false
+				-- local itemType = (player.inventory[i][1] and items[player.inventory[i][1]].type) or false
+				local imgScale = 1 + (player.inventory[i][2] and player.inventory[i][2] or 0)*0.5
+				if img then
+					love.graphics.setColour(1,1,1)
+					love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale*imgScale, 0.25*scale*imgScale, img:getWidth()/2, img:getHeight()/2)
+				end
+
+				if player.inventory[i][3] then
+					love.graphics.print(player.inventory[i][3], 3, nil, nil, 0.7)
+				end
 				love.graphics.translate(countX*tSize/2 - x*tSize, -y*tSize)
 			end
 		end
 		love.graphics.translate(-x,-y)
+
+		if player.inventory.mouse[1] then
+			love.graphics.translate(love.mouse.getX(), love.mouse.getY())
+			local img = items[player.inventory.mouse[1]].img
+			-- local itemType = (player.inventory[i][1] and items[player.inventory[i][1]].type) or false
+			local imgScale = 1.5
+			if img then
+				love.graphics.setColour(1,1,1)
+				love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale*imgScale, 0.25*scale*imgScale, img:getWidth()/2, img:getHeight()/2)
+			end
+
+			if player.inventory.mouse[3] then
+				love.graphics.print(player.inventory.mouse[3], 3, nil, nil, 0.7)
+			end
+			love.graphics.translate(-love.mouse.getX(), -love.mouse.getY())
+		end
 	end
 
 	function player:keypressed(k)
@@ -577,6 +664,64 @@ function entity.new(camera)
 			player.inventory.mesh:setTexture(items[player.inventory[player.inventory.selected][1]].img)
 		end
 		print(player.inventory.selected)
+	end
+
+	local function inventorySwap()
+		local tmp = player.inventory[player.inventory.hover]
+		player.inventory[player.inventory.hover] = player.inventory.mouse
+		player.inventory.mouse = tmp
+	end
+
+	function love.mousepressed(x,y,b)
+		if player.inventory.hover then
+			if b == 1 then
+				if player.inventory[player.inventory.hover][1] == player.inventory.mouse[1] and #player.inventory.mouse > 0 then
+					player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] or 1
+					player.inventory.mouse[3] = player.inventory.mouse[3] or 1
+
+					player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] + player.inventory.mouse[3]
+					player.inventory.mouse = {}
+				else
+					inventorySwap()
+				end
+			elseif b == 2 then
+				if #player.inventory.mouse == 0 then
+					if player.inventory[player.inventory.hover][3] then 
+	--					player.inventory.mouse = player.inventory[player.inventory.hover]
+						player.inventory.mouse = {
+							player.inventory[player.inventory.hover][1],
+							player.inventory[player.inventory.hover][2],
+						  player.inventory[player.inventory.hover][3],
+						}
+						player.inventory.mouse[3] = math.ceil(player.inventory[player.inventory.hover][3]/2)
+						player.inventory[player.inventory.hover][3] = math.floor(player.inventory[player.inventory.hover][3]/2)
+					else
+						inventorySwap()
+					end
+				else
+					if player.inventory[player.inventory.hover][1] == player.inventory.mouse[1] then 
+						if player.inventory.mouse[3] then
+							player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] or 1
+							player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] + 1
+							player.inventory.mouse[3] = player.inventory.mouse[3] - 1
+						else
+							player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] or 1
+							player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] + 1
+							player.inventory.mouse = {}
+						end
+					end
+					if not player.inventory[player.inventory.hover][1] then 
+						if player.inventory.mouse[3] then
+							player.inventory[player.inventory.hover][1] = player.inventory.mouse[1]
+							player.inventory[player.inventory.hover][3] = nil
+							player.inventory.mouse[3] = player.inventory.mouse[3] - 1
+						else
+							inventorySwap()
+						end
+					end
+				end
+			end
+		end
 	end
 
 	return player
