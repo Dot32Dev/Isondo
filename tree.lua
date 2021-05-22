@@ -47,7 +47,7 @@ function entity.new(camera, treeX, treeZ)
   tree.mesh = love.graphics.newMesh(subSphere(0, 0.8))
 
   function tree:draw()
-    local tx, ty = p3d({x=self.z*self.camera.scale, y=self.y*self.camera.scale, z=self.x*self.camera.scale}, self.camera.dir)
+    local tx, ty = p3d({x=self.z, y=self.y, z=self.x}, self.camera.dir)
     love.graphics.translate(tx, ty)
 
     -- stump
