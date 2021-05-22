@@ -489,6 +489,9 @@ function entity.new(camera)
 				player.inventory[i][3] = nil
 			end
 		end
+		for i=1, #player.inventory.recipes do
+			player.inventory.recipes[i].item[2] = player.inventory.recipes[i].item[2] * 0.7
+		end
 
 		player.inventory.hover = false
 		-- detect mouse hovering over hotbar
@@ -555,6 +558,35 @@ function entity.new(camera)
 				end
 
 				tx = tx + f:getWidth(player.inventory.openMenus[i])*0.7+(tSize-aSize)
+			end
+
+			tx = -10*tSize/2
+			if player.inventory.openMenus[player.inventory.openMenuSelected] == "Crafting" then
+				local craftingSelected
+
+				local i = 0
+				for iy=1, 3 do
+					for ix=1, 10 do
+						i = i + 1
+						if i > #player.inventory.recipes then
+							break
+						end
+						print("got here")
+						if x > (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) - tSize/2 and x < (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) + tSize/2 
+						and y > (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) - tSize/2 and y < (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) + tSize/2 then
+							craftingSelected = i
+							if #player.inventory.mouse == 0 then
+								love.mouse.setCursor(intro.cursor)--player.inventory.recipes[i].item[1]
+							end
+
+							if player.inventory.recipes[i].item[2] then
+								player.inventory.recipes[i].item[2] = player.inventory.recipes[i].item[2] + (0.5-player.inventory.recipes[i].item[2]) * 0.7
+							elseif  player.inventory.recipes[i].item[1] then
+								player.inventory.recipes[i].item[2] = 0
+							end
+						end
+					end
+				end
 			end
 		end
 	end
@@ -713,7 +745,7 @@ function entity.new(camera)
 		end
 		love.graphics.pop()
 
-		-- optionally run in differen menu's
+		-- optionally run in differen menus
 		if player.inventory.openMenus[player.inventory.openMenuSelected] == "Crafting" then
 			local countI = #player.inventory.recipes
 			local i = 0
@@ -727,17 +759,17 @@ function entity.new(camera)
 						love.graphics.rectangle('line', -aSize/2, -aSize/2, aSize, aSize, 5*scale)
 
 						love.graphics.setColour(1,1,1)
-						local img = (player.inventory.recipes[i] and items[player.inventory[i][1]].img) or false
+						local img = items[player.inventory.recipes[i].item[1]].img
 						-- local itemType = (player.inventory[i][1] and items[player.inventory[i][1]].type) or false
-						local imgScale = 1 + (player.inventory[i][2] and player.inventory[i][2] or 0)*0.5
+						local imgScale = 1 + player.inventory.recipes[i].item[2]*0.5
 						if img then
 							love.graphics.setColour(1,1,1)
 							love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale*imgScale, 0.25*scale*imgScale, img:getWidth()/2, img:getHeight()/2)
 						end
 
-						-- if player.inventory[i][3] then
-						-- 	love.graphics.print(player.inventory[i][3], 3, nil, nil, 0.7)
-						-- end
+						if player.inventory.recipes[i].item[3] then
+							love.graphics.print(player.inventory.recipes[i].item[3], 3, nil, nil, 0.7)
+						end
 					end
 					love.graphics.translate(countX*tSize/2 - x*tSize, -y*tSize)
 				end
