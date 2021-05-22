@@ -324,9 +324,9 @@ function entity.new(camera)
 	}
 
 	function player:update(dt)
-		local tx, ty = p3d({z=self.x*self.camera.scale, y=0, x=self.z*self.camera.scale}, self.camera.dir)
+		tx, ty = p3d({z=self.x, y=0, x=self.z}, self.camera.dir)
 		tx = tx + self.camera.x + love.graphics.getWidth()/2
-		ty = ty + self.camera.z + love.graphics.getHeight()/2
+		ty = ty + self.camera.z/2 + love.graphics.getHeight()/2
 		self.dir = math.atan2((tx-love.mouse.getX()), (ty-love.mouse.getY())*2)+math.pi + player.armSway/4
 
 		self.attackTimer = self.attackTimer + dt
@@ -415,7 +415,8 @@ function entity.new(camera)
 
 	function player:draw()
 		local tx, ty = p3d({x=self.z, y=self.y, z=self.x}, self.camera.dir)
-		tx, ty = tx+math.sin(self.dir)*self.armSway*-5, ty+math.cos(self.dir)*self.armSway*0.5*-5
+		tx = tx+math.sin(self.dir)*self.armSway*-5 		 --+ self.camera.x
+		ty = ty+math.cos(self.dir)*self.armSway*0.5*-5 --+ self.camera.y
 		love.graphics.translate(tx, ty)
 
 		table.sort(self.objects, function(a,b) 
@@ -552,7 +553,7 @@ function entity.new(camera)
 
 			love.graphics.setColour(0.2,0.25,0.3, 1)
 			love.graphics.rectangle('fill', -bSize/2, -bSize/2, bSize, bSize, 25*scale)
-			love.graphics.setColour(1,1,1, 0.5)
+			love.graphics.setColour(1,1,1, 0.3)
 			if player.inventory.selected == i then
 				love.graphics.setLineWidth(3*scale)
 				love.graphics.setColour(1,1,1)
@@ -573,6 +574,7 @@ function entity.new(camera)
 		end
 		love.graphics.translate(-x-tx,-y)
 		if player.inventory.open then
+			player.inventory.drawCrafting(scale)
 			player.inventory.drawExtended(scale)
 		end
 	end
@@ -590,7 +592,8 @@ function entity.new(camera)
 		local f = love.graphics.getFont()
 		love.graphics.setColour(0.2,0.25,0.3, 1)
 		-- love.graphics.setColour(0.3,0.25,0.2, 1)
-		love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2-30, f:getWidth('Inventory')+(tSize-aSize), 60, 15*scale)
+		-- love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2-30, f:getWidth('Inventory')+(tSize-aSize), 60, 15*scale)
+		love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2-30, tSize*countX+(tSize-aSize), 60)
 		love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2, tSize*countX+(tSize-aSize), 3*tSize+(tSize-aSize), 15*scale)
 
 		love.graphics.setColour(1,1,1)
@@ -602,7 +605,7 @@ function entity.new(camera)
 				i = i + 1
 				love.graphics.translate(-countX*tSize/2 + x*tSize, y*tSize)
 
-				love.graphics.setColour(1,1,1, 0.5)
+				love.graphics.setColour(1,1,1, 0.3)
 				love.graphics.rectangle('line', -aSize/2, -aSize/2, aSize, aSize, 5*scale)
 
 				love.graphics.setColour(1,1,1)
@@ -640,6 +643,57 @@ function entity.new(camera)
 			end
 			love.graphics.translate(-love.mouse.getX(), -love.mouse.getY())
 		end
+	end
+
+	function player.inventory.drawCrafting(scale)
+		local tSize = 40*scale  -- translate size
+		local aSize = 30*scale  -- light square tile size
+		local bSize = tSize     -- background tile size
+		local countX, countY = 10, 3
+
+		local x = love.graphics.getWidth()/2-tSize/2
+		local y = love.graphics.getHeight()-35-tSize*(countY+2+3+1)
+		love.graphics.translate(x,y)
+
+		local f = love.graphics.getFont()
+		love.graphics.setColour(0.3,0.25,0.2, 1)
+		-- love.graphics.setColour(0.3,0.25,0.2, 1)
+		love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2-30, tSize*countX+(tSize-aSize), 60, 15*scale)
+		love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2, tSize*countX+(tSize-aSize), 5*tSize+(tSize-aSize), 15*scale)
+
+		love.graphics.setColour(1,1,1)
+		love.graphics.print('Crafting', bSize/2-countX*tSize/2+(f:getWidth('Crafting')-f:getWidth('Crafting')*0.7)/2, tSize/2-f:getHeight()-(tSize-aSize)/2, nil, 0.7)
+		love.graphics.setColour(1,1,1, 0.3)
+		love.graphics.print('Chest', bSize/2-countX*tSize/2+(f:getWidth('Crafting')+f:getWidth('Crafting')*0.7)/2+(tSize-aSize), tSize/2-f:getHeight()-(tSize-aSize)/2, nil, 0.7)
+
+		local i = countX
+		for y=1, countY do
+			for x=1, countX do
+				i = i + 1
+				love.graphics.translate(-countX*tSize/2 + x*tSize, y*tSize)
+
+				love.graphics.setColour(1,1,1, 0.3)
+				love.graphics.rectangle('line', -aSize/2, -aSize/2, aSize, aSize, 5*scale)
+
+				love.graphics.setColour(1,1,1)
+				--local img = (player.inventory[i][1] and items[player.inventory[i][1]].img) or false
+				--if x*y*i % 3 == 0 then love.graphics.print(i-10, 3, nil, nil, 0.7) end
+
+				local img = (player.inventory[i][1] and items[player.inventory[i][1]].img) or false
+				-- local itemType = (player.inventory[i][1] and items[player.inventory[i][1]].type) or false
+				local imgScale = 1 + (player.inventory[i][2] and player.inventory[i][2] or 0)*0.5
+				if img then
+					love.graphics.setColour(1,1,1)
+					love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale*imgScale, 0.25*scale*imgScale, img:getWidth()/2, img:getHeight()/2)
+				end
+
+				if player.inventory[i][3] then
+					love.graphics.print(player.inventory[i][3], 3, nil, nil, 0.7)
+				end
+				love.graphics.translate(countX*tSize/2 - x*tSize, -y*tSize)
+			end
+		end
+		love.graphics.translate(-x,-y)
 	end
 
 	function player:keypressed(k)
