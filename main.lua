@@ -105,14 +105,16 @@ function love.draw()
     --love.graphics.ellipse("fill", love.mouse.getX(), love.mouse.getY(), 20, 10)
 
     love.graphics.push()
-    love.graphics.translate(camera.x+camera.screenShake.x+love.graphics.getWidth()/2, camera.z/2+camera.screenShake.y/2+love.graphics.getHeight()/2)-- Camera +
+    local tx, ty = p3d({z = camera.x+camera.screenShake.x, y=0, x=camera.z+camera.screenShake.y/2}, camera.dir)
+    --love.graphics.translate(camera.x+camera.screenShake.x+love.graphics.getWidth()/2, camera.z/2+camera.screenShake.y/2+love.graphics.getHeight()/2)-- Camera +
+    love.graphics.translate(tx+love.graphics.getWidth()/2, ty+love.graphics.getHeight()/2)
 
     love.graphics.ellipse("fill", 0, 0, 20, 10)
 
     love.graphics.setColour(0,0.2,0.1,1)
     for i=1, #entities do
       love.graphics.push()
-      local tx, ty = p3d({x=entities[i].z*camera.scale, y=0, z=entities[i].x*camera.scale}, camera.dir)
+      local tx, ty = p3d({x=entities[i].z, y=0, z=entities[i].x}, camera.dir)
       love.graphics.translate(tx, ty)
       love.graphics.ellipse("fill", 0, 0, entities[i].shadow, entities[i].shadow/2)
       love.graphics.pop()
@@ -159,7 +161,7 @@ function love.draw()
   -- pprint(camera.x)
   -- pprint(camera.z, 0, 20)
   --pprint(#entities)
-  --pprint(intro.varToString(player.inventory))--intro.varToString()
+  pprint(intro.varToString(player.inventory.recipes))--intro.varToString()
   if love.keyboard.isDown('`') then
     pprint(intro.varToString(player))
   end
