@@ -12,12 +12,19 @@ local player = require('player')
 local tree = require('tree')
 local entities = {}
 table.insert(entities, player)
-for i=1, 60 do
-  table.insert(entities, tree.new(camera, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800))
-  for j=1, #entities do
-    if entities[i].x == entities[j].x and entities[i].y == entities[j].y and i ~= j then
-      entities[i].dead = true
-      entities[i].drops = false
+-- for i=1, 60 do
+--   table.insert(entities, tree.new(camera, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800))
+--   -- for j=1, #entities do
+--   --   if entities[i].x == entities[j].x and entities[i].y == entities[j].y and i ~= j then
+--   --     entities[i].dead = true
+--   --     --entities[i].drops = false
+--   --   end
+--   -- end
+-- end
+for x=-math.floor(25/2), 25 do
+  for y=-math.floor(25/2), 25 do
+    if math.random(1,15) == 1 then
+      table.insert(entities, tree.new(camera, x*64, y*64))
     end
   end
 end
@@ -57,6 +64,9 @@ end
 function love.update(dt)
 	intro:update(dt)
 
+  camera.x = camera.x + (-player.x-camera.x)*0.3
+  camera.z = camera.z + (-player.z-camera.z)*0.3
+
   for i=#entities, 1, -1 do
     entities[i]:update(dt)
     if entities[i].dead then
@@ -92,16 +102,20 @@ function love.draw()
     love.graphics.clear()
     love.graphics.setColour(0,0.2,0.1,1)
 
-    love.graphics.ellipse("fill", love.mouse.getX(), love.mouse.getY(), 20, 10)
+    --love.graphics.ellipse("fill", love.mouse.getX(), love.mouse.getY(), 20, 10)
 
+    love.graphics.push()
     love.graphics.translate(camera.x+camera.screenShake.x+love.graphics.getWidth()/2, camera.z/2+camera.screenShake.y/2+love.graphics.getHeight()/2)-- Camera +
+
+    love.graphics.ellipse("fill", 0, 0, 20, 10)
 
     love.graphics.setColour(0,0.2,0.1,1)
     for i=1, #entities do
+      love.graphics.push()
       local tx, ty = p3d({x=entities[i].z*camera.scale, y=0, z=entities[i].x*camera.scale}, camera.dir)
       love.graphics.translate(tx, ty)
       love.graphics.ellipse("fill", 0, 0, entities[i].shadow, entities[i].shadow/2)
-      love.graphics.translate(-tx, -ty)
+      love.graphics.pop()
     end
   end
   love.graphics.setCanvas()
@@ -123,7 +137,9 @@ function love.draw()
   --love.graphics.polygon('fill', 15,-15, 20,-10, 20,10, 15,15, 10,10, 10,-10)
   --love.graphics.draw(sword, entities[1].x, entities[1].y, nil, 0.5)
 
-  love.graphics.translate( -camera.x-camera.screenShake.x-love.graphics.getWidth()/2, -camera.z/2-camera.screenShake.y/2-love.graphics.getHeight()/2)-- Camera -
+  love.graphics.pop()
+  --love.graphics.translate( -camera.x-camera.screenShake.x-love.graphics.getWidth()/2, -camera.z/2-camera.screenShake.y/2-love.graphics.getHeight()/2)-- Camera -
+
   local f = love.graphics.getFont()
 
   do local compass = {size=30, x=love.graphics.getWidth()-80, y=80}--{size=30, x=love.graphics.getWidth()-80, y=love.graphics.getHeight()-80}
@@ -143,9 +159,12 @@ function love.draw()
   -- pprint(camera.x)
   -- pprint(camera.z, 0, 20)
   --pprint(#entities)
-  pprint(#player.inventory)--intro.varToString()
+  --pprint(intro.varToString(player.inventory))--intro.varToString()
+  if love.keyboard.isDown('`') then
+    pprint(intro.varToString(player))
+  end
 
-  player:drawInventory()
+  player.inventory.draw()
 
   intro:draw()
 end
@@ -161,4 +180,6 @@ function love.keypressed(k)
   if k == 'q' then
     direction = direction + 1
   end
+
+  player:keypressed(k)
 end
