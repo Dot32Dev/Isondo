@@ -122,7 +122,8 @@ function love.draw()
   end
   love.graphics.setCanvas()
   love.graphics.setColour(1,1,1,0.1)
-  love.graphics.draw(shadowMap, -camera.x-camera.screenShake.x-love.graphics.getWidth()/2, -camera.z/2-camera.screenShake.y/2-love.graphics.getHeight()/2)
+  tx, ty = p3d({z = camera.x+camera.screenShake.x, y=0, x=camera.z+camera.screenShake.y/2}, camera.dir)
+  love.graphics.draw(shadowMap, -tx-love.graphics.getWidth()/2, -ty-love.graphics.getHeight()/2)
   
   table.sort(entities, function(a,b)
     local _, _, az = p3d({x=a.z, y=0, z=a.x}, camera.dir)
@@ -161,7 +162,7 @@ function love.draw()
   -- pprint(camera.x)
   -- pprint(camera.z, 0, 20)
   --pprint(#entities)
-  pprint(intro.varToString(player.inventory.recipes))--intro.varToString()
+  --pprint(intro.varToString(player.inventory.recipes))--intro.varToString()
   if love.keyboard.isDown('`') then
     pprint(intro.varToString(player))
   end
