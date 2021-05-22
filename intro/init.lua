@@ -4,8 +4,8 @@ intro.globals = {
   water = {r=0.81,g=0.83,b=1}
 }
 
-local project = {}
-project.font = love.graphics.newFont("Public_Sans/static/PublicSans-Black.ttf", 20)
+intro.project = {}
+intro.project.font = love.graphics.newFont("Public_Sans/static/PublicSans-Black.ttf", 20)
 
 function intro:init(subtext)
   self.dot32 = {}
@@ -52,7 +52,7 @@ function intro:update(dt)
   
   if self.timer > self.length then
     self.phase = 2
-    love.graphics.setFont(project.font)
+    love.graphics.setFont(self.project.font)
   end
   if self.phase == 2 then
     self.ghost = self.ghost -dt/self.sustain
@@ -64,6 +64,9 @@ end
 
 function intro:draw()
   if self.phase < 3 then
+    local r,g,b,a = love.graphics.getColour()
+    local font = love.graphics.getFont()
+
     love.graphics.setColor(0.17, 0.17, 0.17, self.ghost)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
@@ -76,6 +79,8 @@ function intro:draw()
     love.graphics.setColor(0.2, 0.2, 0.2, self.ghost)
     love.graphics.rectangle("fill", 0, love.graphics.getHeight()-5, love.graphics.getWidth()-(love.graphics.getWidth()/self.length)*self.timer, 5)
 
+    love.graphics.setColour(r,g,b,a)
+    love.graphics.setFont(font)
     --love.graphics.setColor(1, 1, 1, self.ghost)
     --love.graphics.rectangle("fill", 50, love.graphics.getHeight()-5-100, ((love.graphics.getWidth()-100)/self.length*self.timer, 5)
   end
@@ -114,4 +119,42 @@ end
   --     love.window.setFullscreen(true)
   -- end
 -- end
+function intro.varToString(var) -- thank you so much HugoBDesigner! (https://love2d.org/forums/viewtopic.php?t=82877)
+  if type(var) == "string" then
+    return "\"" .. var .. "\""
+  elseif type(var) ~= "table" then
+    return tostring(var)
+  else
+    local ret = "{ "
+    local ts = {}
+    local ti = {}
+    for i, v in pairs(var) do
+      if type(i) == "string" then
+        table.insert(ts, i)
+      else
+        table.insert(ti, i)
+      end
+    end
+    table.sort(ti)
+    table.sort(ts)
+    
+    local comma = ""
+    if #ti >= 1 then
+      for i, v in ipairs(ti) do
+        ret = ret .. comma .. intro.varToString(var[v])
+        comma = ", \n"
+      end
+    end
+    
+    if #ts >= 1 then
+      for i, v in ipairs(ts) do
+        ret = ret .. comma .. "" .. v .. " = " .. intro.varToString(var[v])
+        comma = ", \n"
+      end
+    end
+    
+    return ret .. "}"
+  end
+end
+
 return intro
