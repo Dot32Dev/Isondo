@@ -47,7 +47,7 @@ function entity.new(camera, treeX, treeZ)
   tree.mesh = love.graphics.newMesh(subSphere(0, 0.8))
 
   function tree:draw()
-    local tx, ty = p3d({x=self.z, y=self.y, z=self.x}, self.camera.dir)
+    local tx, ty = p3d({x=self.z*self.camera.scale, y=self.y*self.camera.scale, z=self.x*self.camera.scale}, self.camera.dir)
     love.graphics.translate(tx, ty)
 
     -- stump
@@ -107,7 +107,7 @@ function entity.new(camera, treeX, treeZ)
     local dist = distance(x,z, self.x,self.z)
     if dist < 100 and dist > 1 then
       local dir = math.atan2(self.x-x, self.z-z)
-      if math.abs(angleDifference(dir, plrdir)) < math.pi/2 then
+      if math.abs(angleDifference(dir, plrdir-self.camera.dir)) < math.pi/2 then
         --self.x = self.x + 50 * (self.x-x)/dist
         --self.z = self.z + 50 * (self.z-z)/dist
         self.dir = dir
@@ -119,9 +119,12 @@ function entity.new(camera, treeX, treeZ)
 
   function tree:onDeath(entities, player)
     if self.drops then
-      local xV = math.sin(self.dir)*5
-      local zV = math.cos(self.dir)*5
-      table.insert(entities, item.new(self.camera, player, 2, {x=self.x, z=self.z, xV=xV, zV=zV}))
+      for i=1, love.math.random(2,3) do
+        local dir = self.dir+(love.math.random()*4-2)/5*math.pi
+        local xV = math.sin(dir)*5
+        local zV = math.cos(dir)*5
+        table.insert(entities, item.new(self.camera, player, 2, {x=self.x, z=self.z, xV=xV, zV=zV}))
+      end
     end
   end
 
