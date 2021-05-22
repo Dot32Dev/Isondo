@@ -134,7 +134,7 @@ function entity.new(camera)
 	player.inventory.openMenuSelected = #player.inventory.openMenus
 
 	player.inventory.recipes = {
-		{item = {1,0}, resources = {{index = 2, count = 5}}}
+		{item = {1,0}, materials = {{index = 2, amount = 5}}, craftable = false}
 	}
 
 	player.inventory.mesh = love.graphics.newMesh(player.inventory.vertices(), "fan", "stream")
@@ -562,7 +562,6 @@ function entity.new(camera)
 
 			tx = -10*tSize/2
 			if player.inventory.openMenus[player.inventory.openMenuSelected] == "Crafting" then
-				local craftingSelected
 
 				local i = 0
 				for iy=1, 3 do
@@ -571,11 +570,9 @@ function entity.new(camera)
 						if i > #player.inventory.recipes then
 							break
 						end
-						print("got here")
 						if x > (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) - tSize/2 and x < (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) + tSize/2 
 						and y > (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) - tSize/2 and y < (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) + tSize/2 then
-							craftingSelected = i
-							if #player.inventory.mouse == 0 then
+							if #player.inventory.mouse == 0 and player.inventory.recipes[i].craftable then
 								love.mouse.setCursor(intro.cursor)--player.inventory.recipes[i].item[1]
 							end
 
@@ -763,7 +760,12 @@ function entity.new(camera)
 						-- local itemType = (player.inventory[i][1] and items[player.inventory[i][1]].type) or false
 						local imgScale = 1 + player.inventory.recipes[i].item[2]*0.5
 						if img then
-							love.graphics.setColour(1,1,1)
+							if player.inventory.recipes[i].craftable then 
+								love.graphics.setColour(1,1,1)
+							else
+								love.graphics.setColour(1,1,1,0.5)
+								imgScale = 1
+							end
 							love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale*imgScale, 0.25*scale*imgScale, img:getWidth()/2, img:getHeight()/2)
 						end
 
@@ -776,6 +778,56 @@ function entity.new(camera)
 			end
 		end
 		love.graphics.translate(-x,-y)
+	end
+
+	function player.inventory.takeItems(recipe)
+		print("i was called for")
+		for j=1, #recipe do
+			print(j)
+			local amountFound = 0
+			local i = 1
+			while amountFound < recipe[j].amount and i < #player.inventory+1 do
+				print(i)
+				if player.inventory[i][1] == recipe[j].index then
+					local stack = player.inventory[i][3] or 1
+					local tmp = amountFound
+					amountFound = amountFound + math.min(player.inventory[i][3], (recipe[j].amount-amountFound))
+					player.inventory[i][3] = player.inventory[i][3] - math.min(player.inventory[i][3], (recipe[j].amount-tmp))
+					if player.inventory[i][3] < 1 then
+						player.inventory[i] = {}
+					end
+				end
+
+				i=i+1
+			end
+		end
+		player.inventory.craftAvailability()
+	end
+
+	function player.inventory.craftAvailability()
+		-- awfully unoptimised, please fix later :blobsweats:
+		local itemAmounts = {}
+		for i=1, #items do
+			table.insert(itemAmounts, 0)
+		end
+		for i=1, #player.inventory do
+			if #player.inventory[i] > 0 then
+				local stack = player.inventory[i][3] or 1
+				itemAmounts[player.inventory[i][1]] = itemAmounts[player.inventory[i][1]] + stack
+			end
+		end
+
+		for i=1, #player.inventory.recipes do
+			local craftable = false
+			for i=1, #player.inventory.recipes[i].materials do
+				local required = player.inventory.recipes[i].materials[i].amount-1
+				local itemType = player.inventory.recipes[i].materials[i].index
+				if itemAmounts[itemType] > required then
+					craftable = true
+				end
+			end
+			player.inventory.recipes[i].craftable = craftable
+		end
 	end
 
 	function player:keypressed(k)
@@ -791,11 +843,14 @@ function entity.new(camera)
 
 		if k == 'escape' then
 			player.inventory.open = not player.inventory.open
+			if player.inventory.open then 
+				player.inventory.craftAvailability()
+			end
 		end
 	end
 
 	function love.wheelmoved(x, y)
-		player.inventory.selected = (player.inventory.selected + y -1) % #player.inventory + 1
+		player.inventory.selected = (player.inventory.selected + y -1) % 10 + 1
 		if player.inventory[player.inventory.selected][1] then -- if the selected item isnt pointing to an empty table
 			player.inventory.mesh:setTexture(items[player.inventory[player.inventory.selected][1]].img)
 		end
@@ -853,6 +908,31 @@ function entity.new(camera)
 							player.inventory.mouse[3] = player.inventory.mouse[3] - 1
 						else
 							inventorySwap()
+						end
+					end
+				end
+			end
+		end
+		local tSize = 40
+		local tx = -10*tSize/2
+		if player.inventory.openMenus[player.inventory.openMenuSelected] == "Crafting" then
+			local i = 0
+			for iy=1, 3 do
+				for ix=1, 10 do
+					i = i + 1
+					if i > #player.inventory.recipes then
+						break
+					end
+					if x > (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) - tSize/2 and x < (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) + tSize/2 
+					and y > (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) - tSize/2 and y < (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) + tSize/2 then
+						if player.inventory.recipes[i].craftable then
+							if #player.inventory.mouse == 0 then
+								player.inventory.mouse[1] = player.inventory.recipes[i].item[1]
+								player.inventory.takeItems(player.inventory.recipes[i].materials)
+							elseif player.inventory.mouse[1] == player.inventory.recipes[i].item[1] then
+								player.inventory.mouse[3] = (player.inventory.mouse[3] or 1) + 1
+								player.inventory.takeItems(player.inventory.recipes[i].materials)
+							end
 						end
 					end
 				end
