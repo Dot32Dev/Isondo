@@ -7,6 +7,8 @@ intro.globals = {
 intro.project = {}
 intro.project.font = love.graphics.newFont("Public_Sans/static/PublicSans-Black.ttf", 20)
 
+intro.cursor = love.mouse.getSystemCursor("hand")
+
 function intro:init(subtext)
   self.dot32 = {}
   self.dot32.font = love.graphics.newFont("intro/PT_Sans/PTSans-Bold.ttf", 100)
