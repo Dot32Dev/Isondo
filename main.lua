@@ -123,7 +123,7 @@ function love.draw()
     --love.graphics.translate(camera.x+camera.screenShake.x+love.graphics.getWidth()/2, camera.z/2+camera.screenShake.y/2+love.graphics.getHeight()/2)-- Camera +
     love.graphics.translate(tx+love.graphics.getWidth()/2, ty+love.graphics.getHeight()/2)
 
-    love.graphics.ellipse("fill", 0, 0, 20, 10)
+    -- love.graphics.ellipse("line", 0, 0, 20, 10)
 
     love.graphics.setColour(0,0.2,0.1,1)
     for i=1, #entities do
