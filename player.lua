@@ -331,9 +331,10 @@ function entity.new(camera)
 	}
 
 	function player:update(dt)
+		txb, tyb = p3d({z = self.camera.x+self.camera.screenShake.x, y=0, x=self.camera.z+self.camera.screenShake.y/2}, self.camera.dir)
 		tx, ty = p3d({z=self.x, y=0, x=self.z}, self.camera.dir)
-		tx = tx + self.camera.x + love.graphics.getWidth()/2
-		ty = ty + self.camera.z/2 + love.graphics.getHeight()/2
+		tx = tx + txb + love.graphics.getWidth()/2
+		ty = ty + tyb + love.graphics.getHeight()/2
 		self.dir = math.atan2((tx-love.mouse.getX()), (ty-love.mouse.getY())*2)+math.pi + player.armSway/4
 
 		self.attackTimer = self.attackTimer + dt
