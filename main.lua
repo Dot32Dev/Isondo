@@ -33,14 +33,14 @@ for x=-math.floor(32/2), 32 do
   end
 end
 
-for x=-math.floor(32/2), 32 do
-  for y=-math.floor(32/2), 32 do
-    local value = love.math.noise(x*0.6, y*0.6, seed)
-    if value < 0.23 then--math.random(1,15) == 1 then
-      table.insert(entities, bush.new(camera, x*50, y*50))
-    end
-  end
-end
+-- for x=-math.floor(32/2), 32 do
+--   for y=-math.floor(32/2), 32 do
+--     local value = love.math.noise(x*0.6, y*0.6, seed)
+--     if value < 0.3 then--math.random(1,15) == 1 then
+--       table.insert(entities, bush.new(camera, x*50, y*50))
+--     end
+--   end
+-- end
 
 
 local sword = love.graphics.newImage('items/sword.png')
