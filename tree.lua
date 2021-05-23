@@ -138,7 +138,11 @@ function entity.new(camera, treeX, treeZ, height)
         local dir = self.dir+(love.math.random()*4-2)/5*math.pi
         local xV = math.sin(dir)*5
         local zV = math.cos(dir)*5
-        table.insert(entities, item.new(self.camera, player, 2, {x=self.x, z=self.z, xV=xV, zV=zV}))
+        local itemIndex = 2
+        if tree.colour[1] == 0.78 then
+          itemIndex = 3
+        end
+        table.insert(entities, item.new(self.camera, player, itemIndex, {x=self.x, z=self.z, xV=xV, zV=zV}))
       end
     end
   end
