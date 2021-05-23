@@ -705,6 +705,17 @@ function entity.new(camera)
 			end
 			love.graphics.translate(-love.mouse.getX(), -love.mouse.getY())
 		end
+
+		if player.inventory.hover and player.inventory[player.inventory.hover][1] then
+			local _, count = items[player.inventory[player.inventory.hover][1]].desc:gsub('\n', '\n')
+			local padding = 5
+			love.graphics.setColour(0,0,0)
+			love.graphics.rectangle('fill', love.mouse.getX()+20-padding, love.mouse.getY()-padding, math.max(f:getWidth(items[player.inventory[player.inventory.hover][1]].name)*0.7, f:getWidth(items[player.inventory[player.inventory.hover][1]].desc)*0.6)+padding*2, f:getHeight()*(0.7+0.6*(1+count))+padding*2, padding)
+			love.graphics.setColour(1,1,1)
+			love.graphics.print(items[player.inventory[player.inventory.hover][1]].name, love.mouse.getX()+20, love.mouse.getY(), nil, 0.7) -- ..'\n'..items[player.inventory[player.inventory.hover][1]].desc
+			love.graphics.setColour(1,1,1, 0.7)
+			love.graphics.print(items[player.inventory[player.inventory.hover][1]].desc, love.mouse.getX()+20, love.mouse.getY()+f:getHeight()*0.7, nil, 0.6)
+		end
 	end
 
 	function player.inventory.drawCrafting(scale)
