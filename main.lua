@@ -10,6 +10,8 @@ local player = require('player')
       player = player.new(camera)
 
 local tree = require('tree')
+local bush = require('bush')
+
 local entities = {}
 table.insert(entities, player)
 -- for i=1, 60 do
@@ -26,10 +28,20 @@ for x=-math.floor(32/2), 32 do
   for y=-math.floor(32/2), 32 do
     local value = love.math.noise(x*0.6, y*0.6, seed)
     if value > 0.7 then--math.random(1,15) == 1 then
-      table.insert(entities, tree.new(camera, x*40, y*50, math.random(40,60)))
+      table.insert(entities, tree.new(camera, x*50, y*50, math.random(40,60)))
     end
   end
 end
+
+for x=-math.floor(32/2), 32 do
+  for y=-math.floor(32/2), 32 do
+    local value = love.math.noise(x*0.6, y*0.6, seed)
+    if value < 0.23 then--math.random(1,15) == 1 then
+      table.insert(entities, bush.new(camera, x*50, y*50))
+    end
+  end
+end
+
 
 local sword = love.graphics.newImage('items/sword.png')
 
