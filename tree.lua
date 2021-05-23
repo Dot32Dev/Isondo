@@ -1,8 +1,18 @@
 local item = require('item')
 local entity = {}
 
-function entity.new(camera, treeX, treeZ)
-  local tree = {id = 'tree', camera = camera, x = treeX or 60, y = 0, z = treeZ or 30, shadow = 20*1.3, health = 3, dir = 0, wobble = 0, wobbleV = 0, dead = false, drops = true}
+function entity.new(camera, treeX, treeZ, height)
+  local tree = {id = 'tree', camera = camera, x = treeX or 60, y = 0, z = treeZ or 30, shadow = 20*1.3, health = 3, dir = 0, wobble = 0, wobbleV = 0, dead = false, drops = true, height = height or 50}
+  
+  tree.colour = {0.38, 0.65, 0.42}
+
+  local rng = math.random()
+  if rng > 0.7 then
+    tree.colour = {0.34, 0.59, 0.43}
+    if rng > 0.95 then
+      tree.colour = {0.78, 0.66, 0.85}
+    end
+  end
 
   local function p3d(p, rotation)
     rotation = rotation or 0 -- rotation is a scalar that rotates around the y axis
@@ -50,28 +60,33 @@ function entity.new(camera, treeX, treeZ)
     local tx, ty = p3d({x=self.z*self.camera.scale, y=self.y*self.camera.scale, z=self.x*self.camera.scale}, self.camera.dir)
     love.graphics.translate(tx, ty)
 
+    local size = self.height/50
     -- stump
     love.graphics.setColour(0.6, 0.44, 0.33)
-    love.graphics.ellipse("fill", 0, 0, 10, 5)
+    if tree.colour[1] == 0.78 then
+      love.graphics.setColour(0.49, 0.39, 0.35)
+    end
+    love.graphics.ellipse("fill", 0, 0, 10*size, 5*size)
 
     -- trunk
-    local height = 50
-    love.graphics.setLineWidth(20)
+    local height = self.height
+    love.graphics.setLineWidth(20*size)
     local x,y = p3d({x=self.wobble, y=-height, z=0}, self.dir)
     love.graphics.line(0,0, x,y)
 
     --shadowTrunk
     if love.keyboard.isDown('/') then
       love.graphics.setColour(0.53, 0.33, 0.29)
-      love.graphics.ellipse("fill", x/height*20, y/height*20, 10, 5)
+      love.graphics.ellipse("fill", x/height*20, y/height*20, 10*size, 5*size)
     end
 
     -- leaves
-    love.graphics.setColour(0.38, 0.65, 0.42)
+    -- love.graphics.setColour(0.38, 0.65, 0.42)
+    love.graphics.setColour(tree.colour)
     if love.keyboard.isDown('/') then
       love.graphics.setColour(0.3, 0.54, 0.4)
     end
-    love.graphics.ellipse("fill", x, y+6, 20*1.3, 19*1.3) --1.3
+    love.graphics.ellipse("fill", x, y+6, 20*1.3*size, 19*1.3*size) --1.3
     if love.keyboard.isDown('/') then
       love.graphics.setColour(0.38, 0.65, 0.42)
       love.graphics.draw(tree.mesh, x, y+6)

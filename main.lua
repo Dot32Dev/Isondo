@@ -4,7 +4,7 @@ local camera = {x=0, y=0, z=0, dir=0, scale = 1}
 camera.screenShake = {x=0, y=0, xV=0, yV=0}
 local direction = 0 -- (north = 0, east = 1, south = 2, west = 3)
 
-local grid = {tileSize = 50}
+-- local grid = {tileSize = 50}
 
 local player = require('player')
       player = player.new(camera)
@@ -21,10 +21,12 @@ table.insert(entities, player)
 --   --   end
 --   -- end
 -- end
-for x=-math.floor(25/2), 25 do
-  for y=-math.floor(25/2), 25 do
-    if math.random(1,15) == 1 then
-      table.insert(entities, tree.new(camera, x*64, y*64))
+local seed = math.random(1000, 9999)
+for x=-math.floor(32/2), 32 do
+  for y=-math.floor(32/2), 32 do
+    local value = love.math.noise(x*0.6, y*0.6, seed)
+    if value > 0.7 then--math.random(1,15) == 1 then
+      table.insert(entities, tree.new(camera, x*40, y*50, math.random(40,60)))
     end
   end
 end
