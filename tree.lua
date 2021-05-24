@@ -74,25 +74,10 @@ function entity.new(camera, treeX, treeZ, height)
     local x,y = p3d({x=self.wobble, y=-height, z=0}, self.dir)
     love.graphics.line(0,0, x,y)
 
-    --shadowTrunk
-    if love.keyboard.isDown('/') then
-      love.graphics.setColour(0.53, 0.33, 0.29)
-      love.graphics.ellipse("fill", x/height*20, y/height*20, 10*size, 5*size)
-    end
-
     -- leaves
     -- love.graphics.setColour(0.38, 0.65, 0.42)
     love.graphics.setColour(tree.colour)
-    if love.keyboard.isDown('/') then
-      love.graphics.setColour(0.3, 0.54, 0.4)
-    end
     love.graphics.ellipse("fill", x, y+6, 20*1.3*size, 19*1.3*size) --1.3
-    if love.keyboard.isDown('/') then
-      love.graphics.setColour(0.38, 0.65, 0.42)
-      love.graphics.draw(tree.mesh, x, y+6)
-      love.graphics.setColour(0.47, 0.69, 0.45)
-      love.graphics.ellipse("fill", x, y-12, 6, 3)
-    end
 
     --love.graphics.print(self.wobbleV)
     
