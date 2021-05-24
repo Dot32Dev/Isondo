@@ -10,7 +10,6 @@ local player = require('player')
       player = player.new(camera)
 
 local tree = require('tree')
-local bush = require('bush')
 
 local entities = {}
 table.insert(entities, player)
