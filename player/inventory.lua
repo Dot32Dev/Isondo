@@ -148,7 +148,7 @@ function inventory.update(dt)
 	end
 end
 
-function inventory.draw(scale)
+function inventory:draw(scale)
 	local scale = scale or 1--1.2
 
 	local x = love.graphics.getWidth()/2-40*scale/2
@@ -175,26 +175,26 @@ function inventory.draw(scale)
 		love.graphics.setColour(0.2,0.25,0.3, 1)
 		love.graphics.rectangle('fill', -bSize/2, -bSize/2, bSize, bSize, 25*scale)
 		love.graphics.setColour(1,1,1, 0.3)
-		if inventory.selected == i then
+		if self.selected == i then
 			love.graphics.setLineWidth(3*scale)
 			love.graphics.setColour(1,1,1)
 		end
 		love.graphics.rectangle('line', -aSize/2, -aSize/2, aSize, aSize, 5*scale)
 
-		local img = (inventory[i][1] and items[inventory[i][1]].img) or false
-		-- local itemType = (inventory[i][1] and items[inventory[i][1]].type) or false
-		local imgScale = 1 + (inventory[i][2] and inventory[i][2] or 0)*0.5
+		local img = (self[i][1] and items[self[i][1]].img) or false
+		-- local itemType = (self[i][1] and items[self[i][1]].type) or false
+		local imgScale = 1 + (self[i][2] and self[i][2] or 0)*0.5
 		if img then
 			love.graphics.setColour(1,1,1)
 			love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale*imgScale, 0.25*scale*imgScale, img:getWidth()/2, img:getHeight()/2)
 		end
 
-		if inventory[i][3] then
-			love.graphics.print(inventory[i][3], 3, nil, nil, 0.7)
+		if self[i][3] then
+			love.graphics.print(self[i][3], 3, nil, nil, 0.7)
 		end
 	end
 	love.graphics.translate(-x-tx,-y)
-	if inventory.open then
+	if self.open then
 		inventory.drawCrafting(scale)
 		inventory.drawExtended(scale)
 	end
@@ -501,6 +501,14 @@ function inventory:keypressed(k)
 			self.craftAvailability()
 		end
 	end
+end
+
+function inventory:wheelmoved(x,y)
+	self.selected = (self.selected + y -1) % 10 + 1
+	if player.inventory[self.selected][1] then -- if the selected item isnt pointing to an empty table
+		self.mesh:setTexture(items[player.inventory[self.selected][1]].img)
+	end
+	print(self.selected)
 end
 
 return inventory

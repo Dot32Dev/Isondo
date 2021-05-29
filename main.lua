@@ -180,8 +180,8 @@ function love.draw()
     pprint(intro.varToString(player))
   end
 
-  player.inventory.draw()
-
+  player.inventory:draw()
+  
   intro:draw()
 end
 
