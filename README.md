@@ -7,8 +7,9 @@ maybe it'll become a game
 - normalised movement
 - framerate independant movement utilising dt
 - running animations
-- randomly generated trees
+- randomly generated trees (with mutations)
 - rotatable 3D camera (press e/q)
+- full inventory with crafting (not shown in image/gifs)
 
 <img width="912" alt="Screen Shot 2021-05-16 at 3 10 15 pm" src="https://user-images.githubusercontent.com/61964090/118388869-8f73af00-b659-11eb-90a5-d031315c73c8.png">
 
