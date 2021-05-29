@@ -91,7 +91,7 @@ function entity.new(camera, player, itemIndex, point)
   end
 
   function item:onDeath(entities)
-    player.inventory.add(self.index)
+    player.inventory:add(self.index)
   end
 
   return item
