@@ -60,83 +60,45 @@ function entity.new(camera)
 		return #player.attackAnimation
 	end
 
-	player.inventory = {
-		selected = 1,
-		vertices = function() -- generates the vertices for a mesh to contain the item image
-			local img = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].img) or false
-			local itemType = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].type) or false
-			if not img then 
-				return {{-0,-0, 0,0},{0,-0, 1,0},{0,0, 1,1},{-0,0, 0,1}}
-			end
-
-			if itemType == "sword" then
-				tlx, tly = 0,-img:getHeight()/2
-				trx, try = img:getWidth(),-img:getHeight()/2
-				brx, bry = img:getWidth(), img:getHeight()/2
-				blx, bly = 0, img:getHeight()/2
-			else
-				tlx, tly = -img:getHeight()/4,-img:getHeight()/4
-				trx, try = img:getWidth()/4,-img:getHeight()/4
-				brx, bry = img:getWidth()/4, img:getHeight()/4
-				blx, bly = -img:getHeight()/4, img:getHeight()/4
-			end
-
-			player.itemDir2 = player.itemDir2+ (player.attackAnimation[attackAnimationKey()][3]-player.itemDir2)*0.5
-			local dir = 0
-			if itemType == "sword" then
-				dir = math.sin(player.animFrame)*math.pi/4+math.pi/4*math.sqrt(player.xV^2+player.yV^2)/8.57
-			end
-			tlx, tly = p3d({x=tly, y=0, z=tlx}, dir+ player.itemDir2, 0)
-			trx, try = p3d({x=try, y=0, z=trx}, dir+ player.itemDir2, 0)
-			brx, bry = p3d({x=bry, y=0, z=brx}, dir+ player.itemDir2, 0)
-			blx, bly = p3d({x=bly, y=0, z=blx}, dir+ player.itemDir2, 0)
-
-			player.itemDir1 = player.itemDir1+ (player.attackAnimation[attackAnimationKey()][2]-player.itemDir1)*0.5
-			dir = player.dir+player.itemDir1
-			tlx, tly = p3d({x=tlx, y=tly, z=0}, dir)
-			trx, try = p3d({x=trx, y=try, z=0}, dir)
-			brx, bry = p3d({x=brx, y=bry, z=0}, dir)
-			blx, bly = p3d({x=blx, y=bly, z=0}, dir)
-
-			return {{tlx, tly, 0,0},{trx, try, 1,0},{brx, bry, 1,1},{blx, bly, 0,1}}
-		end,
-	}
-
-	player.inventory[1] = {1} -- "{1}" is the index to an item in the items table
-	--player.inventory[2] = {2}
-	for i=1, 40-#player.inventory do -- ensures 10 items
-		table.insert(player.inventory, {}) -- insert empty table
-	end
-
-	player.inventory.add = function(index)
-		local added = false
-		for i=1, #player.inventory do
-			if player.inventory[i][1] == index and not added then
-				player.inventory[i][2] = 1 -- bounce
-				player.inventory[i][3] = (player.inventory[i][3] and player.inventory[i][3]+1) or 2 -- amount in stack
-				added = true
-				break
-			end
+	player.inventory = require('player.inventory')
+	player.inventory.vertices = function() -- generates the vertices for a mesh to contain the item image
+		local img = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].img) or false
+		local itemType = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].type) or false
+		if not img then 
+			return {{-0,-0, 0,0},{0,-0, 1,0},{0,0, 1,1},{-0,0, 0,1}}
 		end
-		for i=1, #player.inventory do
-			if not player.inventory[i][1] and not added  then
-				player.inventory[i][1] = index
-				player.inventory[i][2] = 1
-				added = true
-				break
-			end
+
+		if itemType == "sword" then
+			tlx, tly = 0,-img:getHeight()/2
+			trx, try = img:getWidth(),-img:getHeight()/2
+			brx, bry = img:getWidth(), img:getHeight()/2
+			blx, bly = 0, img:getHeight()/2
+		else
+			tlx, tly = -img:getHeight()/4,-img:getHeight()/4
+			trx, try = img:getWidth()/4,-img:getHeight()/4
+			brx, bry = img:getWidth()/4, img:getHeight()/4
+			blx, bly = -img:getHeight()/4, img:getHeight()/4
 		end
+
+		player.itemDir2 = player.itemDir2+ (player.attackAnimation[attackAnimationKey()][3]-player.itemDir2)*0.5
+		local dir = 0
+		if itemType == "sword" then
+			dir = math.sin(player.animFrame)*math.pi/4+math.pi/4*math.sqrt(player.xV^2+player.yV^2)/8.57
+		end
+		tlx, tly = p3d({x=tly, y=0, z=tlx}, dir+ player.itemDir2, 0)
+		trx, try = p3d({x=try, y=0, z=trx}, dir+ player.itemDir2, 0)
+		brx, bry = p3d({x=bry, y=0, z=brx}, dir+ player.itemDir2, 0)
+		blx, bly = p3d({x=bly, y=0, z=blx}, dir+ player.itemDir2, 0)
+
+		player.itemDir1 = player.itemDir1+ (player.attackAnimation[attackAnimationKey()][2]-player.itemDir1)*0.5
+		dir = player.dir+player.itemDir1
+		tlx, tly = p3d({x=tlx, y=tly, z=0}, dir)
+		trx, try = p3d({x=trx, y=try, z=0}, dir)
+		brx, bry = p3d({x=brx, y=bry, z=0}, dir)
+		blx, bly = p3d({x=blx, y=bly, z=0}, dir)
+
+		return {{tlx, tly, 0,0},{trx, try, 1,0},{brx, bry, 1,1},{blx, bly, 0,1}}
 	end
-
-	player.inventory.mouse = {}
-
-	player.inventory.openMenus = {"Quit", "Options", "Crafting"}
-	player.inventory.openMenuSelected = #player.inventory.openMenus
-
-	player.inventory.recipes = {
-		{item = {1,0}, materials = {{index = 2, amount = 5}}, craftable = false}
-	}
-
 	player.inventory.mesh = love.graphics.newMesh(player.inventory.vertices(), "fan", "stream")
 	if player.inventory[player.inventory.selected][1] then -- if the selected item isnt pointing to an empty table
 		player.inventory.mesh:setTexture(items[player.inventory[player.inventory.selected][1]].img)
@@ -477,368 +439,6 @@ function entity.new(camera)
 				self.xV = self.xV + 15 * (self.x-x)/dist
 				self.zV = self.zV + 15 * (self.z-z)/dist
 			end
-		end
-	end
-
-	function player.inventory.update(dt)
-		love.mouse.setCursor()
-		for i=1, #player.inventory do 
-			if player.inventory[i][2] then
-				player.inventory[i][2] = player.inventory[i][2] * 0.7
-			end
-			if player.inventory[i][3] and player.inventory[i][3] == 1 then 
-				player.inventory[i][3] = nil
-			end
-		end
-		for i=1, #player.inventory.recipes do
-			player.inventory.recipes[i].item[2] = player.inventory.recipes[i].item[2] * 0.7
-		end
-
-		player.inventory.hover = false
-		-- detect mouse hovering over hotbar
-		if player.inventory.open then
-			local scale = 1
-
-			local tSize = 40*scale
-			local aSize = 30*scale
-			local tx = -10*tSize/2
-
-			local x = love.mouse.getX()
-			local y = love.mouse.getY() 
-			for i=1, 10 do
-				if x > (tx+tSize*i+love.graphics.getWidth()/2-tSize/2) - tSize/2 and x < (tx+tSize*i+love.graphics.getWidth()/2-tSize/2) + tSize/2 
-				and y > (love.graphics.getHeight()-35) - tSize/2 and y < (love.graphics.getHeight()-35) + tSize/2 then
-					player.inventory.hover = i
-					if player.inventory[i][1] and #player.inventory.mouse == 0 then
-						love.mouse.setCursor(intro.cursor)
-					end
-
-					if player.inventory[i][2] then
-						player.inventory[i][2] = player.inventory[i][2] + (0.5-player.inventory[i][2]) * 0.7
-					elseif  player.inventory[i][1] then
-						player.inventory[i][2] = 0
-					end
-				end
-			end
-			if not player.inventory.hover then
-				local i = 10
-				for iy=1, 3 do
-					for ix=1, 10 do
-						i = i + 1
-						if x > (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) - tSize/2 and x < (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) + tSize/2 
-						and y > (love.graphics.getHeight()-35-tSize*(3+2)+iy*tSize) - tSize/2 and y < (love.graphics.getHeight()-35-tSize*(3+2)+iy*tSize) + tSize/2 then
-							player.inventory.hover = i
-							if player.inventory[i][1] and #player.inventory.mouse == 0 then
-								love.mouse.setCursor(intro.cursor)
-							end
-
-							if player.inventory[i][2] then
-								player.inventory[i][2] = player.inventory[i][2] + (0.5-player.inventory[i][2]) * 0.7
-							elseif  player.inventory[i][1] then
-								player.inventory[i][2] = 0
-							end
-						end
-					end
-				end
-			end
-			if player.inventory.mouse[3] and player.inventory.mouse[3] == 1 then 
-				player.inventory.mouse[3] = nil
-			end
-			local f = love.graphics.getFont()
-			local tx = tSize-(tSize-aSize)/2-10*tSize/2 +love.graphics.getWidth()/2-tSize/2
-			local ty = love.graphics.getHeight()-35-tSize*(3+2+3+1)
-			for i=#player.inventory.openMenus, 1, -1 do
-				if i ~= player.inventory.openMenuSelected then
-					if x > tx and x < tx+f:getWidth(player.inventory.openMenus[i])*0.7
-					and y > ty and y < ty+f:getHeight()*0.7 then
-						love.mouse.setCursor(intro.cursor)
-						if love.mouse.isDown(1) then
-							player.inventory.openMenuSelected = i
-						end
-					end
-				end
-
-				tx = tx + f:getWidth(player.inventory.openMenus[i])*0.7+(tSize-aSize)
-			end
-
-			tx = -10*tSize/2
-			if player.inventory.openMenus[player.inventory.openMenuSelected] == "Crafting" then
-
-				local i = 0
-				for iy=1, 3 do
-					for ix=1, 10 do
-						i = i + 1
-						if i > #player.inventory.recipes then
-							break
-						end
-						if x > (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) - tSize/2 and x < (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) + tSize/2 
-						and y > (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) - tSize/2 and y < (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) + tSize/2 then
-							if #player.inventory.mouse == 0 and player.inventory.recipes[i].craftable then
-								love.mouse.setCursor(intro.cursor)--player.inventory.recipes[i].item[1]
-							end
-
-							if player.inventory.recipes[i].item[2] then
-								player.inventory.recipes[i].item[2] = player.inventory.recipes[i].item[2] + (0.5-player.inventory.recipes[i].item[2]) * 0.7
-							elseif  player.inventory.recipes[i].item[1] then
-								player.inventory.recipes[i].item[2] = 0
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-
-	function player.inventory.draw(scale)
-		local scale = scale or 1--1.2
-
-		local x = love.graphics.getWidth()/2-40*scale/2
-		local y = love.graphics.getHeight()-35
-		--love.graphics.circle('fill', x, y, 10)
-
-		love.graphics.translate(x,y)
-
-		local tSize = 40*scale  -- translate size
-		local aSize = 30*scale  -- light square tile size
-		local bSize = tSize     -- background tile size
-		local count = 10
-		local tx = -count*tSize/2--*scale
-
-		love.graphics.setColour(0.2,0.25,0.3, 1)
-		love.graphics.rectangle('fill', tx+bSize/2-(tSize-aSize)/2, -bSize/2-(tSize-aSize)/2, tSize*count+(tSize-aSize), tSize+(tSize-aSize)+50, 15*scale)
-
-		love.graphics.translate(tx, 0)
-		for i=1, count do
-			love.graphics.setLineWidth(2*scale)
-			love.graphics.translate(tSize, 0)
-			tx = tx + tSize
-
-			love.graphics.setColour(0.2,0.25,0.3, 1)
-			love.graphics.rectangle('fill', -bSize/2, -bSize/2, bSize, bSize, 25*scale)
-			love.graphics.setColour(1,1,1, 0.3)
-			if player.inventory.selected == i then
-				love.graphics.setLineWidth(3*scale)
-				love.graphics.setColour(1,1,1)
-			end
-			love.graphics.rectangle('line', -aSize/2, -aSize/2, aSize, aSize, 5*scale)
-
-			local img = (player.inventory[i][1] and items[player.inventory[i][1]].img) or false
-			-- local itemType = (player.inventory[i][1] and items[player.inventory[i][1]].type) or false
-			local imgScale = 1 + (player.inventory[i][2] and player.inventory[i][2] or 0)*0.5
-			if img then
-				love.graphics.setColour(1,1,1)
-				love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale*imgScale, 0.25*scale*imgScale, img:getWidth()/2, img:getHeight()/2)
-			end
-
-			if player.inventory[i][3] then
-				love.graphics.print(player.inventory[i][3], 3, nil, nil, 0.7)
-			end
-		end
-		love.graphics.translate(-x-tx,-y)
-		if player.inventory.open then
-			player.inventory.drawCrafting(scale)
-			player.inventory.drawExtended(scale)
-		end
-	end
-
-	function player.inventory.drawExtended(scale)
-		local tSize = 40*scale  -- translate size
-		local aSize = 30*scale  -- light square tile size
-		local bSize = tSize     -- background tile size
-		local countX, countY = 10, 3
-
-		local x = love.graphics.getWidth()/2-tSize/2
-		local y = love.graphics.getHeight()-35-tSize*(countY+2)
-		love.graphics.translate(x,y)
-
-		local f = love.graphics.getFont()
-		love.graphics.setColour(0.2,0.25,0.3, 1)
-		-- love.graphics.setColour(0.3,0.25,0.2, 1)
-		-- love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2-30, f:getWidth('Inventory')+(tSize-aSize), 60, 15*scale)
-		love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2-30, tSize*countX+(tSize-aSize), 60)
-		love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2, tSize*countX+(tSize-aSize), 3*tSize+(tSize-aSize), 15*scale)
-
-		love.graphics.setColour(1,1,1)
-		love.graphics.print('Inventory', tSize-(tSize-aSize)/2-countX*tSize/2, tSize/2-f:getHeight()-(tSize-aSize)/2, nil, 0.7)
-
-		local i = countX
-		for y=1, countY do
-			for x=1, countX do
-				i = i + 1
-				love.graphics.translate(-countX*tSize/2 + x*tSize, y*tSize)
-
-				love.graphics.setColour(1,1,1, 0.3)
-				love.graphics.rectangle('line', -aSize/2, -aSize/2, aSize, aSize, 5*scale)
-
-				love.graphics.setColour(1,1,1)
-				--local img = (player.inventory[i][1] and items[player.inventory[i][1]].img) or false
-				--if x*y*i % 3 == 0 then love.graphics.print(i-10, 3, nil, nil, 0.7) end
-
-				local img = (player.inventory[i][1] and items[player.inventory[i][1]].img) or false
-				-- local itemType = (player.inventory[i][1] and items[player.inventory[i][1]].type) or false
-				local imgScale = 1 + (player.inventory[i][2] and player.inventory[i][2] or 0)*0.5
-				if img then
-					love.graphics.setColour(1,1,1)
-					love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale*imgScale, 0.25*scale*imgScale, img:getWidth()/2, img:getHeight()/2)
-				end
-
-				if player.inventory[i][3] then
-					love.graphics.print(player.inventory[i][3], 3, nil, nil, 0.7)
-				end
-				love.graphics.translate(countX*tSize/2 - x*tSize, -y*tSize)
-			end
-		end
-		love.graphics.translate(-x,-y)
-
-		if player.inventory.mouse[1] then
-			love.graphics.translate(love.mouse.getX(), love.mouse.getY())
-			local img = items[player.inventory.mouse[1]].img
-			-- local itemType = (player.inventory[i][1] and items[player.inventory[i][1]].type) or false
-			local imgScale = 1.5
-			if img then
-				love.graphics.setColour(1,1,1)
-				love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale*imgScale, 0.25*scale*imgScale, img:getWidth()/2, img:getHeight()/2)
-			end
-
-			if player.inventory.mouse[3] then
-				love.graphics.print(player.inventory.mouse[3], 3, nil, nil, 0.7)
-			end
-			love.graphics.translate(-love.mouse.getX(), -love.mouse.getY())
-		end
-
-		if player.inventory.hover and player.inventory[player.inventory.hover][1] then
-			local _, count = items[player.inventory[player.inventory.hover][1]].desc:gsub('\n', '\n')
-			local padding = 5
-			love.graphics.setColour(0,0,0)
-			love.graphics.rectangle('fill', love.mouse.getX()+20-padding, love.mouse.getY()-padding, math.max(f:getWidth(items[player.inventory[player.inventory.hover][1]].name)*0.7, f:getWidth(items[player.inventory[player.inventory.hover][1]].desc)*0.6)+padding*2, f:getHeight()*(0.7+0.6*(1+count))+padding*2, padding)
-			love.graphics.setColour(1,1,1)
-			love.graphics.print(items[player.inventory[player.inventory.hover][1]].name, love.mouse.getX()+20, love.mouse.getY(), nil, 0.7) -- ..'\n'..items[player.inventory[player.inventory.hover][1]].desc
-			love.graphics.setColour(1,1,1, 0.7)
-			love.graphics.print(items[player.inventory[player.inventory.hover][1]].desc, love.mouse.getX()+20, love.mouse.getY()+f:getHeight()*0.7, nil, 0.6)
-		end
-	end
-
-	function player.inventory.drawCrafting(scale)
-		local tSize = 40*scale  -- translate size
-		local aSize = 30*scale  -- light square tile size
-		local bSize = tSize     -- background tile size
-		local countX, countY = 10, 3
-
-		local x = love.graphics.getWidth()/2-tSize/2
-		local y = love.graphics.getHeight()-35-tSize*(countY+2+3+1)
-		love.graphics.translate(x,y)
-
-		local f = love.graphics.getFont()
-		love.graphics.setColour(0.3,0.25,0.2, 1)
-		-- love.graphics.setColour(0.3,0.25,0.2, 1)
-		love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2-30, tSize*countX+(tSize-aSize), 60, 15*scale)
-		love.graphics.rectangle('fill', bSize/2-(tSize-aSize)/2-countX*tSize/2, -(tSize-aSize)/2+tSize/2, tSize*countX+(tSize-aSize), 5*tSize+(tSize-aSize), 15*scale)
-
-		-- love.graphics.setColour(1,1,1)
-		-- love.graphics.print('Crafting', bSize/2-countX*tSize/2+(f:getWidth('Crafting')-f:getWidth('Crafting')*0.7)/2, tSize/2-f:getHeight()-(tSize-aSize)/2, nil, 0.7)
-		-- love.graphics.setColour(1,1,1, 0.3)
-		-- love.graphics.print('Chest', bSize/2-countX*tSize/2+(f:getWidth('Crafting')+f:getWidth('Crafting')*0.7)/2+(tSize-aSize), tSize/2-f:getHeight()-(tSize-aSize)/2, nil, 0.7)
-
-		love.graphics.push()
-		love.graphics.translate(tSize-(tSize-aSize)/2-countX*tSize/2, 0)
-		for i=#player.inventory.openMenus, 1, -1 do
-			if i == player.inventory.openMenuSelected then
-				love.graphics.setColour(1,1,1)
-			else
-				love.graphics.setColour(1,1,1, 0.3)
-			end
-
-			love.graphics.print(player.inventory.openMenus[i], 0, 0, nil, 0.7)
-
-			love.graphics.translate(f:getWidth(player.inventory.openMenus[i])*0.7+(tSize-aSize),0)
-		end
-		love.graphics.pop()
-
-		-- optionally run in differen menus
-		if player.inventory.openMenus[player.inventory.openMenuSelected] == "Crafting" then
-			local countI = #player.inventory.recipes
-			local i = 0
-			for y=1, countY do
-				for x=1, countX do
-					i = i + 1
-					love.graphics.translate(-countX*tSize/2 + x*tSize, y*tSize)
-					if i <= countI then
-
-						love.graphics.setColour(1,1,1, 0.3)
-						love.graphics.rectangle('line', -aSize/2, -aSize/2, aSize, aSize, 5*scale)
-
-						love.graphics.setColour(1,1,1)
-						local img = items[player.inventory.recipes[i].item[1]].img
-						-- local itemType = (player.inventory[i][1] and items[player.inventory[i][1]].type) or false
-						local imgScale = 1 + player.inventory.recipes[i].item[2]*0.5
-						if img then
-							if player.inventory.recipes[i].craftable then 
-								love.graphics.setColour(1,1,1)
-							else
-								love.graphics.setColour(1,1,1,0.5)
-								imgScale = 1
-							end
-							love.graphics.draw(img, 0,0, -math.pi/4,0.25*scale*imgScale, 0.25*scale*imgScale, img:getWidth()/2, img:getHeight()/2)
-						end
-
-						if player.inventory.recipes[i].item[3] then
-							love.graphics.print(player.inventory.recipes[i].item[3], 3, nil, nil, 0.7)
-						end
-					end
-					love.graphics.translate(countX*tSize/2 - x*tSize, -y*tSize)
-				end
-			end
-		end
-		love.graphics.translate(-x,-y)
-	end
-
-	function player.inventory.takeItems(recipe)
-		print("i was called for")
-		for j=1, #recipe do
-			print(j)
-			local amountFound = 0
-			local i = 1
-			while amountFound < recipe[j].amount and i < #player.inventory+1 do
-				print(i)
-				if player.inventory[i][1] == recipe[j].index then
-					local stack = player.inventory[i][3] or 1
-					local tmp = amountFound
-					amountFound = amountFound + math.min(player.inventory[i][3], (recipe[j].amount-amountFound))
-					player.inventory[i][3] = player.inventory[i][3] - math.min(player.inventory[i][3], (recipe[j].amount-tmp))
-					if player.inventory[i][3] < 1 then
-						player.inventory[i] = {}
-					end
-				end
-
-				i=i+1
-			end
-		end
-		player.inventory.craftAvailability()
-	end
-
-	function player.inventory.craftAvailability()
-		-- awfully unoptimised, please fix later :blobsweats:
-		local itemAmounts = {}
-		for i=1, #items do
-			table.insert(itemAmounts, 0)
-		end
-		for i=1, #player.inventory do
-			if #player.inventory[i] > 0 then
-				local stack = player.inventory[i][3] or 1
-				itemAmounts[player.inventory[i][1]] = itemAmounts[player.inventory[i][1]] + stack
-			end
-		end
-
-		for i=1, #player.inventory.recipes do
-			local craftable = false
-			for i=1, #player.inventory.recipes[i].materials do
-				local required = player.inventory.recipes[i].materials[i].amount-1
-				local itemType = player.inventory.recipes[i].materials[i].index
-				if itemAmounts[itemType] > required then
-					craftable = true
-				end
-			end
-			player.inventory.recipes[i].craftable = craftable
 		end
 	end
 
