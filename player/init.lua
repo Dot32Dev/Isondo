@@ -310,7 +310,7 @@ function entity.new(camera)
 		end
 		self.armSway = self.armSway+ (self.attackAnimation[attackAnimationKey()][4]-self.armSway)*0.5
 
-		player.inventory.update()
+		player.inventory:update()
 
 		if love.keyboard.isDown("r") then
 			self.x = 0
@@ -446,12 +446,8 @@ function entity.new(camera)
 		player.inventory:keypressed(k)
 	end
 
-	function love.wheelmoved(x, y)
-		player.inventory.selected = (player.inventory.selected + y -1) % 10 + 1
-		if player.inventory[player.inventory.selected][1] then -- if the selected item isnt pointing to an empty table
-			player.inventory.mesh:setTexture(items[player.inventory[player.inventory.selected][1]].img)
-		end
-		print(player.inventory.selected)
+	function love.wheelmoved(x,y)
+		player.inventory:wheelmoved(x,y)
 	end
 
 	function love.mousepressed(x,y,b)
