@@ -401,4 +401,106 @@ function inventory.craftAvailability()
 	end
 end
 
+function inventory:swap()
+	local tmp = self[self.hover]
+	self[self.hover] = self.mouse
+	self.mouse = tmp
+end
+
+function inventory:mousepressed(x,y,b)
+	if self.hover then
+		if b == 1 then
+			if self[self.hover][1] == self.mouse[1] and #self.mouse > 0 then
+				self[self.hover][3] = self[self.hover][3] or 1
+				self.mouse[3] = self.mouse[3] or 1
+
+				self[self.hover][3] = self[self.hover][3] + self.mouse[3]
+				self.mouse = {}
+			else
+				self:swap()
+			end
+		elseif b == 2 then
+			if #self.mouse == 0 then
+				if self[self.hover][3] then 
+--					self.mouse = self[self.hover]
+					self.mouse = {
+						self[self.hover][1],
+						self[self.hover][2],
+					  self[self.hover][3],
+					}
+					self.mouse[3] = math.ceil(self[self.hover][3]/2)
+					self[self.hover][3] = math.floor(self[self.hover][3]/2)
+				else
+					self:swap()
+				end
+			else
+				if self[self.hover][1] == self.mouse[1] then 
+					if self.mouse[3] then
+						self[self.hover][3] = self[self.hover][3] or 1
+						self[self.hover][3] = self[self.hover][3] + 1
+						self.mouse[3] = self.mouse[3] - 1
+					else
+						self[self.hover][3] = self[self.hover][3] or 1
+						self[self.hover][3] = self[self.hover][3] + 1
+						self.mouse = {}
+					end
+				end
+				if not self[self.hover][1] then 
+					if self.mouse[3] then
+						self[self.hover][1] = self.mouse[1]
+						self[self.hover][3] = nil
+						self.mouse[3] = self.mouse[3] - 1
+					else
+						self:swap()
+					end
+				end
+			end
+		end
+	end
+	local tSize = 40
+	local tx = -10*tSize/2
+	if self.openMenus[self.openMenuSelected] == "Crafting" then
+		local i = 0
+		for iy=1, 3 do
+			for ix=1, 10 do
+				i = i + 1
+				if i > #self.recipes then
+					break
+				end
+				if x > (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) - tSize/2 and x < (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) + tSize/2 
+				and y > (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) - tSize/2 and y < (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) + tSize/2 then
+					if self.recipes[i].craftable then
+						if #self.mouse == 0 then
+							self.mouse[1] = self.recipes[i].item[1]
+							self.takeItems(self.recipes[i].materials)
+						elseif self.mouse[1] == self.recipes[i].item[1] then
+							self.mouse[3] = (self.mouse[3] or 1) + 1
+							self.takeItems(self.recipes[i].materials)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function inventory:keypressed(k)
+	local n = tonumber(k)
+	if n then 
+		n = (n and n>0 and n) or 10
+		self.selected = n
+		if self[self.selected][1] then -- if the selected item isnt pointing to an empty table
+			self.mesh:setTexture(items[self[self.selected][1]].img)
+		end
+		print(self.selected)
+	end
+
+	if k == 'escape' then
+		self.open = not self.open
+		if self.open then 
+			self.craftAvailability()
+		end
+	end
+end
+
 return inventory

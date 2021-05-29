@@ -443,22 +443,7 @@ function entity.new(camera)
 	end
 
 	function player:keypressed(k)
-		local n = tonumber(k)
-		if n then 
-			n = (n and n>0 and n) or 10
-			self.inventory.selected = n
-			if player.inventory[player.inventory.selected][1] then -- if the selected item isnt pointing to an empty table
-				player.inventory.mesh:setTexture(items[player.inventory[player.inventory.selected][1]].img)
-			end
-			print(self.inventory.selected)
-		end
-
-		if k == 'escape' then
-			player.inventory.open = not player.inventory.open
-			if player.inventory.open then 
-				player.inventory.craftAvailability()
-			end
-		end
+		player.inventory:keypressed(k)
 	end
 
 	function love.wheelmoved(x, y)
@@ -469,87 +454,8 @@ function entity.new(camera)
 		print(player.inventory.selected)
 	end
 
-	local function inventorySwap()
-		local tmp = player.inventory[player.inventory.hover]
-		player.inventory[player.inventory.hover] = player.inventory.mouse
-		player.inventory.mouse = tmp
-	end
-
 	function love.mousepressed(x,y,b)
-		if player.inventory.hover then
-			if b == 1 then
-				if player.inventory[player.inventory.hover][1] == player.inventory.mouse[1] and #player.inventory.mouse > 0 then
-					player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] or 1
-					player.inventory.mouse[3] = player.inventory.mouse[3] or 1
-
-					player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] + player.inventory.mouse[3]
-					player.inventory.mouse = {}
-				else
-					inventorySwap()
-				end
-			elseif b == 2 then
-				if #player.inventory.mouse == 0 then
-					if player.inventory[player.inventory.hover][3] then 
-	--					player.inventory.mouse = player.inventory[player.inventory.hover]
-						player.inventory.mouse = {
-							player.inventory[player.inventory.hover][1],
-							player.inventory[player.inventory.hover][2],
-						  player.inventory[player.inventory.hover][3],
-						}
-						player.inventory.mouse[3] = math.ceil(player.inventory[player.inventory.hover][3]/2)
-						player.inventory[player.inventory.hover][3] = math.floor(player.inventory[player.inventory.hover][3]/2)
-					else
-						inventorySwap()
-					end
-				else
-					if player.inventory[player.inventory.hover][1] == player.inventory.mouse[1] then 
-						if player.inventory.mouse[3] then
-							player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] or 1
-							player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] + 1
-							player.inventory.mouse[3] = player.inventory.mouse[3] - 1
-						else
-							player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] or 1
-							player.inventory[player.inventory.hover][3] = player.inventory[player.inventory.hover][3] + 1
-							player.inventory.mouse = {}
-						end
-					end
-					if not player.inventory[player.inventory.hover][1] then 
-						if player.inventory.mouse[3] then
-							player.inventory[player.inventory.hover][1] = player.inventory.mouse[1]
-							player.inventory[player.inventory.hover][3] = nil
-							player.inventory.mouse[3] = player.inventory.mouse[3] - 1
-						else
-							inventorySwap()
-						end
-					end
-				end
-			end
-		end
-		local tSize = 40
-		local tx = -10*tSize/2
-		if player.inventory.openMenus[player.inventory.openMenuSelected] == "Crafting" then
-			local i = 0
-			for iy=1, 3 do
-				for ix=1, 10 do
-					i = i + 1
-					if i > #player.inventory.recipes then
-						break
-					end
-					if x > (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) - tSize/2 and x < (tx+tSize*ix+love.graphics.getWidth()/2-tSize/2) + tSize/2 
-					and y > (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) - tSize/2 and y < (love.graphics.getHeight()-35-tSize*(3+2+3+1)+iy*tSize) + tSize/2 then
-						if player.inventory.recipes[i].craftable then
-							if #player.inventory.mouse == 0 then
-								player.inventory.mouse[1] = player.inventory.recipes[i].item[1]
-								player.inventory.takeItems(player.inventory.recipes[i].materials)
-							elseif player.inventory.mouse[1] == player.inventory.recipes[i].item[1] then
-								player.inventory.mouse[3] = (player.inventory.mouse[3] or 1) + 1
-								player.inventory.takeItems(player.inventory.recipes[i].materials)
-							end
-						end
-					end
-				end
-			end
-		end
+		player.inventory:mousepressed(x,y,b)
 	end
 
 	return player
