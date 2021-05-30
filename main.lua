@@ -16,11 +16,11 @@ local seed = 8147 -- math.random(1000, 9999)
 for x=-math.floor(32/2), 32 do
   grid[x+math.floor(32/2)] = {}
   for y=-math.floor(32/2), 32 do
-    grid[x+math.floor(32/2)][y] = false
+    grid[x+math.floor(32/2)][y+math.floor(32/2)] = {}
     local value = love.math.noise(x*0.6, y*0.6, seed)
     if value > 0.7 then--math.random(1,15) == 1 then
       local entity = tree.new(camera, x*50, y*50, math.random(40,60))
-      grid[x+math.floor(32/2)][y+math.floor(32/2)] = entity
+      grid[x+math.floor(32/2)][y+math.floor(32/2)][1] = entity
       table.insert(entities, entity)
     end
   end
@@ -142,7 +142,13 @@ function love.draw()
   local mousePos = {love.mouse.getX()-love.graphics.getWidth()/2-tx, love.mouse.getY()*2-love.graphics.getHeight()-ty*2}
   local mouseGrid = {math.floor(mousePos[1]/grid.tileSize+0.5), math.floor(mousePos[2]/grid.tileSize+0.5)}
   if love.keyboard.isDown('`') then
-    love.graphics.circle('fill', mouseGrid[1]*grid.tileSize, mouseGrid[2]*grid.tileSize/2, 10)
+    love.graphics.circle('fill', mouseGrid[1]*grid.tileSize, mouseGrid[2]*grid.tileSize/2, 5)
+    
+    -- love.graphics.print(mouseGrid[1]+math.floor(32/2)..mouseGrid[2]+math.floor(32/2), mouseGrid[1]*grid.tileSize, mouseGrid[2]*grid.tileSize/2)
+    -- love.graphics.print(intro.varToString(grid[mouseGrid[1]+math.floor(32/2)][mouseGrid[2]+math.floor(32/2)]), mouseGrid[1]*grid.tileSize, mouseGrid[2]*grid.tileSize/2, 10)
+    if grid[mouseGrid[1]+math.floor(32/2)][mouseGrid[2]+math.floor(32/2)][1] then
+      love.graphics.print(grid[mouseGrid[1]+math.floor(32/2)][mouseGrid[2]+math.floor(32/2)][1].id, mouseGrid[1]*grid.tileSize, mouseGrid[2]*grid.tileSize/2, 0)
+    end
   end
 
   love.graphics.pop()
