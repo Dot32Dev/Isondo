@@ -4,42 +4,27 @@ local camera = {x=0, y=0, z=0, dir=0, scale = 1}
 camera.screenShake = {x=0, y=0, xV=0, yV=0}
 local direction = 0 -- (north = 0, east = 1, south = 2, west = 3)
 
--- local grid = {tileSize = 50}
-
 local player = require('player')
-      player = player.new(camera)
-
+player = player.new(camera)
 local tree = require('tree')
 
+local grid = {tileSize = 50}
 local entities = {}
 table.insert(entities, player)
--- for i=1, 60 do
---   table.insert(entities, tree.new(camera, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800, math.floor(love.math.random(0, 1600)/grid.tileSize)*grid.tileSize-800))
---   -- for j=1, #entities do
---   --   if entities[i].x == entities[j].x and entities[i].y == entities[j].y and i ~= j then
---   --     entities[i].dead = true
---   --     --entities[i].drops = false
---   --   end
---   -- end
--- end
-local seed = math.random(1000, 9999)
+
+local seed = 8147 -- math.random(1000, 9999)
 for x=-math.floor(32/2), 32 do
+  grid[x+math.floor(32/2)] = {}
   for y=-math.floor(32/2), 32 do
+    grid[x+math.floor(32/2)][y] = false
     local value = love.math.noise(x*0.6, y*0.6, seed)
     if value > 0.7 then--math.random(1,15) == 1 then
-      table.insert(entities, tree.new(camera, x*50, y*50, math.random(40,60)))
+      local entity = tree.new(camera, x*50, y*50, math.random(40,60))
+      grid[x+math.floor(32/2)][y+math.floor(32/2)] = entity
+      table.insert(entities, entity)
     end
   end
 end
-
--- for x=-math.floor(32/2), 32 do
---   for y=-math.floor(32/2), 32 do
---     local value = love.math.noise(x*0.6, y*0.6, seed)
---     if value < 0.3 then--math.random(1,15) == 1 then
---       table.insert(entities, bush.new(camera, x*50, y*50))
---     end
---   end
--- end
 
 
 local sword = love.graphics.newImage('items/sword.png')
@@ -153,6 +138,13 @@ function love.draw()
   --love.graphics.polygon('fill', 15,-15, 20,-10, 20,10, 15,15, 10,10, 10,-10)
   --love.graphics.draw(sword, entities[1].x, entities[1].y, nil, 0.5)
 
+  love.graphics.setColour(1,1,1)
+  local mousePos = {love.mouse.getX()-love.graphics.getWidth()/2-tx, love.mouse.getY()*2-love.graphics.getHeight()-ty*2}
+  local mouseGrid = {math.floor(mousePos[1]/grid.tileSize+0.5), math.floor(mousePos[2]/grid.tileSize+0.5)}
+  if love.keyboard.isDown('`') then
+    love.graphics.circle('fill', mouseGrid[1]*grid.tileSize, mouseGrid[2]*grid.tileSize/2, 10)
+  end
+
   love.graphics.pop()
   --love.graphics.translate( -camera.x-camera.screenShake.x-love.graphics.getWidth()/2, -camera.z/2-camera.screenShake.y/2-love.graphics.getHeight()/2)-- Camera -
 
@@ -173,15 +165,16 @@ function love.draw()
   end
 
   -- pprint(camera.x)
-  -- pprint(camera.z, 0, 20)
-  --pprint(#entities)
-  --pprint(intro.varToString(player.inventory.recipes))--intro.varToString()
+  -- pprint(seed)
+  -- pprint(x..y, 0, 20)
+  -- pprint(#entities)
+  -- pprint(intro.varToString(grid))--intro.varToString()
   if love.keyboard.isDown('`') then
     pprint(intro.varToString(player))
   end
 
   player.inventory:draw()
-  
+
   intro:draw()
 end
 
