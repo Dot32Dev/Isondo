@@ -1,7 +1,6 @@
 # isometric player
 
-maybe it'll become a game
-
+A pseudo 3D experiment
 ### Features 
 - entirely rotatable character
 - normalised movement
