@@ -514,8 +514,8 @@ end
 
 function inventory:wheelmoved(x,y)
 	self.selected = (self.selected + y -1) % 10 + 1
-	if player.inventory[self.selected][1] then -- if the selected item isnt pointing to an empty table
-		self.mesh:setTexture(items[player.inventory[self.selected][1]].img)
+	if self[self.selected][1] then -- if the selected item isnt pointing to an empty table
+		self.mesh:setTexture(items[self[self.selected][1]].img)
 	end
 	print(self.selected)
 end
