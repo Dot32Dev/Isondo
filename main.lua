@@ -4,9 +4,9 @@ local camera = {x=0, y=0, z=0, dir=0, scale = 1}
 camera.screenShake = {x=0, y=0, xV=0, yV=0}
 local direction = 0 -- (north = 0, east = 1, south = 2, west = 3)
 
-local player = require('player')
+local player = require('entities.player')
 player = player.new(camera)
-local tree = require('tree')
+local tree = require('entities.tree')
 
 local grid = {tileSize = 50}
 local entities = {}
