@@ -55,7 +55,6 @@ end
 
 function love.load()
   intro:init()
-  --love.graphics.setBackgroundColour(142/255*intro.globals.water.r,183/255*intro.globals.water.g,130/255*intro.globals.water.b)
   love.graphics.setBackgroundColour(142/255,183/255,130/255)
 end
 
