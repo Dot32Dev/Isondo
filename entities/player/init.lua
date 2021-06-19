@@ -60,7 +60,7 @@ function entity.new(camera)
 		return #player.attackAnimation
 	end
 
-	player.inventory = require('player.inventory')
+	player.inventory = require('entities.player.inventory')
 	player.inventory.vertices = function() -- generates the vertices for a mesh to contain the item image
 		local img = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].img) or false
 		local itemType = (player.inventory[player.inventory.selected][1] and items[player.inventory[player.inventory.selected][1]].type) or false

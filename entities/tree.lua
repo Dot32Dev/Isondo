@@ -1,4 +1,4 @@
-local item = require('item')
+local item = require('entities.item')
 local entity = {}
 
 function entity.new(camera, treeX, treeZ, height)
