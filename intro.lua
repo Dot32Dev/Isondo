@@ -11,13 +11,13 @@ intro.cursor = love.mouse.getSystemCursor("hand")
 
 function intro:init(subtext)
   self.dot32 = {}
-  self.dot32.font = love.graphics.newFont("intro/PT_Sans/PTSans-Bold.ttf", 100)
+  self.dot32.font = love.graphics.newFont("PT_Sans/PTSans-Bold.ttf", 100)
   self.dot32.x = love.graphics.getWidth()/2
   self.dot32.y = 0
   self.dot32.yV = 0
 
   self.sub = {}
-  self.sub.font = love.graphics.newFont("intro/PT_Sans/PTSans-Regular.ttf", 45)
+  self.sub.font = love.graphics.newFont("PT_Sans/PTSans-Regular.ttf", 45)
   self.sub.text = subtext or "Games"
   self.sub.x = 0
   self.sub.y = love.graphics.getHeight()/1.65
