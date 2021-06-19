@@ -1,9 +1,5 @@
 local intro = {length = 0.5, sustain = 0.2}
 
-intro.globals = {
-  water = {r=0.81,g=0.83,b=1}
-}
-
 intro.project = {}
 intro.project.font = love.graphics.newFont("fonts/Public_Sans/static/PublicSans-Black.ttf", 20)
 

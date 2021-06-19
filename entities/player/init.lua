@@ -14,7 +14,7 @@ function entity.new(camera)
 		yV = 0, 
 		zV = 0, 
 		
-		wet = -0, 
+		wet = false, 
 		shadow = 20, 
 
 		animFrame = 0, 
@@ -111,18 +111,17 @@ function entity.new(camera)
 			z=1,
 			draw = function(self)
 				love.graphics.setColour(0.8*0.8,0.6*0.8,0.3*0.8)
-				if player.wet < 0 then
-					love.graphics.setColour(0.8*0.8*intro.globals.water.r, 0.6*0.8*intro.globals.water.g, 0.3*0.8*intro.globals.water.b)
+				if not player.wet then
+					love.graphics.setLineWidth(8)
+					x,y,z = p3d({x=0, y=-12, z=6})
+					x1,y1,z1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2-player.armSway/2)*12, y=-12+math.cos(math.sin(player.animFrame)*math.pi/2-player.armSway/2)*12, z=6})
+					love.graphics.line(x, y, x1, y1) -- left leg
+					love.graphics.ellipse('fill', x1, y1, 5, 2.5)
+					x,y,z = p3d({x=0, y=-12, z=-6})
+					x1,y1,z1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2+player.armSway/2)*12, y=-12+math.cos(math.sin(player.animFrame)*math.pi/2+player.armSway/2)*12, z=-6})
+					love.graphics.line(x, y, x1, y1)
+					love.graphics.ellipse('fill', x1, y1, 5, 2.5)
 				end
-				love.graphics.setLineWidth(8)
-				x,y,z = p3d({x=0, y=-12, z=6})
-				x1,y1,z1 = p3d({x=math.sin(math.sin(player.animFrame)*math.pi/2-player.armSway/2)*12, y=-12+math.cos(math.sin(player.animFrame)*math.pi/2-player.armSway/2)*12, z=6})
-				love.graphics.line(x, y, x1, y1) -- left leg
-				love.graphics.ellipse('fill', x1, y1, 5, 2.5)
-				x,y,z = p3d({x=0, y=-12, z=-6})
-				x1,y1,z1 = p3d({x=math.sin(-math.sin(player.animFrame)*math.pi/2+player.armSway/2)*12, y=-12+math.cos(math.sin(player.animFrame)*math.pi/2+player.armSway/2)*12, z=-6})
-				love.graphics.line(x, y, x1, y1)
-				love.graphics.ellipse('fill', x1, y1, 5, 2.5)
 
 				_, _, self.z = p3d({x=0, y=-12, z=0})
 			end 
@@ -132,9 +131,6 @@ function entity.new(camera)
 			z=2,
 			draw = function(self)
 				love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)
-				if player.wet < -23 then
-					love.graphics.setColour(0.3*0.9*intro.globals.water.r, 0.6*0.9*intro.globals.water.g, 0.8*0.9*intro.globals.water.b)
-				end
 				x,y,z = p3d({x=0, y=-24, z=20})
 				local dir = -math.sin(player.animFrame)*math.pi/2
 				if player.attackTimer < player.attackAnimation[#player.attackAnimation][1] then
@@ -142,6 +138,7 @@ function entity.new(camera)
 				end
 				x1,y1 = p3d({x=math.sin(dir)*12, y=-24+math.cos(math.sin(dir))*12, z=20})
 
+				love.graphics.setLineWidth(10)
 				love.graphics.line(x, y, x1, y1)
 
 				love.graphics.circle('fill', x, y, 5)
@@ -156,15 +153,14 @@ function entity.new(camera)
 			z=3,
 			draw = function(self)
 				love.graphics.setColour(0.3*0.9,0.6*0.9,0.8*0.9)
-				if player.wet < -23 then
-					love.graphics.setColour(0.3*0.9*intro.globals.water.r, 0.6*0.9*intro.globals.water.g, 0.8*0.9*intro.globals.water.b)
-				end
 				x,y,z = p3d({x=0, y=-24, z=-20})
 				local dir = math.sin(player.animFrame)*math.pi/2
 				if player.attackTimer < player.attackAnimation[#player.attackAnimation][1] then
 					dir = player.armSway
 				end
 				x1,y1 = p3d({x=math.sin(dir)*12, y=-24+math.cos(math.sin(dir))*12, z=-20})
+				
+				love.graphics.setLineWidth(10)
 				love.graphics.line(x, y, x1, y1)
 
 				love.graphics.circle('fill', x, y, 5)
@@ -206,27 +202,17 @@ function entity.new(camera)
 				return vertices
 			end,
 			draw = function(self)
-				local wet = false
-				if player.wet < -24+19 then -- hieght from player to ground minus radious of body
-					wet = true
-				end
-
 				love.graphics.setColour(0.3,0.6,0.8)
-				if wet then
-					love.graphics.setColour(0.3*intro.globals.water.r, 0.6*intro.globals.water.g, 0.8*intro.globals.water.b)
-				end
-				love.graphics.ellipse("fill", 0, -24, 20, 19)
-
-				if wet then 
-					local normWet = (player.wet+24)/19
+				if player.wet then
 					if not self.mesh then
-						self.mesh = love.graphics.newMesh(self:vertices(math.max(normWet, -1)), "fan", "stream")
+						self.mesh = love.graphics.newMesh(self:vertices(math.max(0, -1), 0.5), "fan", "stream")
 					else
-						local vertices = self:vertices(math.max(normWet, -1))
+						local vertices = self:vertices(math.max(0, -1), 0.5)
 						self.mesh:setVertices(vertices, 1, #vertices)
 					end
-					love.graphics.setColour(0.3,0.6,0.8)
 					love.graphics.draw(self.mesh, 0, -24)
+				else
+					love.graphics.ellipse("fill", 0, -24, 20, 19)
 				end
 
 				_, _, self.z = p3d({x=0, y=-24, z=0})
@@ -375,12 +361,11 @@ function entity.new(camera)
 		self.z + self.zV*60*dt
 
 		local fall = 0.3
-		if self.wet < 0 then
+		if self.wet then
 			fall = 0.1
 		end
 		self.animFrame = (moved and (self.animFrame + 8.57/50*60*dt)) or (self.animFrame % math.pi + (0-self.animFrame % math.pi)*60*dt *(1 / (1 + (dt*60*1/ fall))))
 		self.y = -math.abs(math.sin(self.animFrame)*math.pi/2*10)
-		self.wet = -0-self.y
 	end
 
 	function player:draw()
