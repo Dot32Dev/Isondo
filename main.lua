@@ -7,6 +7,7 @@ local direction = 0 -- (north = 0, east = 1, south = 2, west = 3)
 local player = require('entities.player')
 player = player.new(camera)
 local tree = require('entities.tree')
+local water = require('entities.water')
 
 local grid = {tileSize = 50}
 local entities = {}
@@ -197,3 +198,12 @@ function love.keypressed(k)
 
   player:keypressed(k)
 end
+
+function love.mousepressed(b)
+  local mousePos = {love.mouse.getX()-love.graphics.getWidth()/2-tx, love.mouse.getY()*2-love.graphics.getHeight()-ty*2}
+  local mouseGrid = {math.floor(mousePos[1]/grid.tileSize+0.5), math.floor(mousePos[2]/grid.tileSize+0.5)}
+  local entity = water.new(camera, mouseGrid[1]*grid.tileSize, mouseGrid[2]*grid.tileSize)
+  table.insert(grid[mouseGrid[1]+math.floor(32/2)][mouseGrid[2]+math.floor(32/2)], entity)
+  table.insert(entities, entity)
+end
+
