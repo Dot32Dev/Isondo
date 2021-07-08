@@ -9,20 +9,20 @@ player = player.new(camera)
 local tree = require('entities.tree')
 local water = require('entities.water')
 
-local grid = {tileSize = 50}
+local grid = {tileSize = 50, w=32, h=32}
 local entities = {} 
 local flooring = {}
 table.insert(entities, player)
 
 local seed = 8147 -- math.random(1000, 9999)
-for x=-math.floor(32/2), 32 do
-	grid[x+math.floor(32/2)] = {}
-	for y=-math.floor(32/2), 32 do
-		grid[x+math.floor(32/2)][y+math.floor(32/2)] = {}
+for x=-math.floor(grid.w/2), grid.w do
+	grid[x+math.floor(grid.w/2)] = {}
+	for y=-math.floor(grid.h/2), grid.h do
+		grid[x+math.floor(grid.w/2)][y+math.floor(grid.h/2)] = {}
 		local value = love.math.noise(x*0.6, y*0.6, seed)
 		if value > 0.7 then--math.random(1,15) == 1 then
-			local entity = tree.new(camera, x*50, y*50, math.random(40,60))
-			grid[x+math.floor(32/2)][y+math.floor(32/2)][1] = entity
+			local entity = tree.new(camera, x*grid.tileSize, y*grid.tileSize, math.random(40,60))
+			grid[x+math.floor(grid.w/2)][y+math.floor(grid.h/2)][1] = entity
 			table.insert(entities, entity)
 		end
 	end
@@ -194,11 +194,47 @@ function love.keypressed(k)
 	player:keypressed(k)
 end
 
+function autoTile(x, y, e)
+	local value = 0
+
+	for i=1, #grid[x][y-1] do
+		if grid[x][y-1][i].id == e.id then
+			value = value + 1
+			grid[x][y-1][i].autoTile = grid[x][y-1][i].autoTile + 4
+			break
+		end
+	end
+	for i=1, #grid[x+1][y] do
+		if grid[x+1][y][i].id == e.id then
+			value = value + 2
+			grid[x+1][y][i].autoTile = grid[x+1][y][i].autoTile + 8
+			break
+		end
+	end
+	for i=1, #grid[x][y+1] do
+		if grid[x][y+1][i].id == e.id then
+			value = value + 4
+			grid[x][y+1][i].autoTile = grid[x][y+1][i].autoTile + 1
+			break
+		end
+	end
+	for i=1, #grid[x-1][y] do
+		if grid[x-1][y][i].id == e.id then
+			value = value + 8
+			grid[x-1][y][i].autoTile = grid[x-1][y][i].autoTile + 2
+			break
+		end
+	end
+
+	e.autoTile = value
+end
+
 function love.mousepressed(b)
 	local mousePos = {love.mouse.getX()-love.graphics.getWidth()/2-tx, love.mouse.getY()*2-love.graphics.getHeight()-ty*2}
 	local mouseGrid = {math.floor(mousePos[1]/grid.tileSize+0.5), math.floor(mousePos[2]/grid.tileSize+0.5)}
 	local entity = water.new(camera, mouseGrid[1]*grid.tileSize, mouseGrid[2]*grid.tileSize)
 	table.insert(grid[mouseGrid[1]+math.floor(32/2)][mouseGrid[2]+math.floor(32/2)], entity)
 	table.insert(flooring, entity)
+	autoTile(mouseGrid[1]+math.floor(32/2), mouseGrid[2]+math.floor(32/2), entity)
 end
 
