@@ -2,7 +2,15 @@ local item = require('entities.item')
 local entity = {}
 
 function entity.new(camera, x, y)
-  local water = {id = 'water', camera = camera, x = x or 60, y = 12.5, z = y or 30, shadow = 1, dir = 0}
+  local water = {
+    id = 'water', 
+    camera = camera, 
+    x = x or 60, 
+    y = 12.5, 
+    z = y or 30, 
+    shadow = 1, 
+    dir = 0,
+  }
   
 
   local function p3d(p, rotation)
@@ -27,6 +35,21 @@ function entity.new(camera, x, y)
     local x2,y2 = p3d({x=0+25, y=0, z=0+25})
     local x3,y3 = p3d({x=0-25, y=0, z=0+25})
     love.graphics.polygon("fill", x,y,x1,y1,x2,y2,x3,y3)
+
+    love.graphics.setColour(1,1,1)
+    love.graphics.print(self.autoTile)
+
+    -- love.graphics.setColour(0.25*1.02,0.63*1.02,0.73*1.02)
+    -- local x,y = p3d({x=0-4-25/2, y=0, z=0-25})
+    -- local x1,y1 = p3d({x=0+4-25/2, y=0, z=0-25})
+    -- local x2,y2 = p3d({x=0+4-25/2, y=0, z=0+25})
+    -- local x3,y3 = p3d({x=0-4-25/2, y=0, z=0+25})
+    -- love.graphics.polygon("fill", x,y,x1,y1,x2,y2,x3,y3)
+    -- local x,y = p3d({x=0-4+25/2, y=0, z=0-25})
+    -- local x1,y1 = p3d({x=0+4+25/2, y=0, z=0-25})
+    -- local x2,y2 = p3d({x=0+4+25/2, y=0, z=0+25})
+    -- local x3,y3 = p3d({x=0-4+25/2, y=0, z=0+25})
+    -- love.graphics.polygon("fill", x,y,x1,y1,x2,y2,x3,y3)
 
 
     love.graphics.translate(-tx, -ty)
