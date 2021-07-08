@@ -96,16 +96,20 @@ function love.update(dt)
 end
 
 function love.draw()
+	love.graphics.push()
+	local tx, ty = p3d({z = camera.x+camera.screenShake.x, y=0, x=camera.z+camera.screenShake.y/2}, camera.dir)
+	--love.graphics.translate(camera.x+camera.screenShake.x+love.graphics.getWidth()/2, camera.z/2+camera.screenShake.y/2+love.graphics.getHeight()/2)-- Camera +
+	love.graphics.translate(tx+love.graphics.getWidth()/2, ty+love.graphics.getHeight()/2)
+
+	for i=1, #flooring do
+		flooring[i]:draw()
+	end
+
 	do love.graphics.setCanvas(shadowMap)
 		love.graphics.clear()
 		love.graphics.setColour(0,0.2,0.1,1)
 
 		--love.graphics.ellipse("fill", love.mouse.getX(), love.mouse.getY(), 20, 10)
-
-		love.graphics.push()
-		local tx, ty = p3d({z = camera.x+camera.screenShake.x, y=0, x=camera.z+camera.screenShake.y/2}, camera.dir)
-		--love.graphics.translate(camera.x+camera.screenShake.x+love.graphics.getWidth()/2, camera.z/2+camera.screenShake.y/2+love.graphics.getHeight()/2)-- Camera +
-		love.graphics.translate(tx+love.graphics.getWidth()/2, ty+love.graphics.getHeight()/2)
 
 		-- love.graphics.ellipse("line", 0, 0, 20, 10)
 
@@ -122,10 +126,6 @@ function love.draw()
 	love.graphics.setColour(1,1,1,0.1)
 	tx, ty = p3d({z = camera.x+camera.screenShake.x, y=0, x=camera.z+camera.screenShake.y/2}, camera.dir)
 	love.graphics.draw(shadowMap, -tx-love.graphics.getWidth()/2, -ty-love.graphics.getHeight()/2)
-	
-	for i=1, #flooring do
-		flooring[i]:draw()
-	end
 	
 	table.sort(entities, function(a,b)
 		local _, _, az = p3d({x=a.z, y=0, z=a.x}, camera.dir)
@@ -230,6 +230,7 @@ function autoTile(x, y, e)
 end
 
 function love.mousepressed(b)
+	tx, ty = p3d({z = camera.x+camera.screenShake.x, y=0, x=camera.z+camera.screenShake.y/2}, camera.dir)
 	local mousePos = {love.mouse.getX()-love.graphics.getWidth()/2-tx, love.mouse.getY()*2-love.graphics.getHeight()-ty*2}
 	local mouseGrid = {math.floor(mousePos[1]/grid.tileSize+0.5), math.floor(mousePos[2]/grid.tileSize+0.5)}
 	local entity = water.new(camera, mouseGrid[1]*grid.tileSize, mouseGrid[2]*grid.tileSize)
