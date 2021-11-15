@@ -230,12 +230,12 @@ function autoTile(x, y, e)
 end
 
 function love.mousepressed(b)
-	tx, ty = p3d({z = camera.x+camera.screenShake.x, y=0, x=camera.z+camera.screenShake.y/2}, camera.dir)
-	local mousePos = {love.mouse.getX()-love.graphics.getWidth()/2-tx, love.mouse.getY()*2-love.graphics.getHeight()-ty*2}
-	local mouseGrid = {math.floor(mousePos[1]/grid.tileSize+0.5), math.floor(mousePos[2]/grid.tileSize+0.5)}
-	local entity = water.new(camera, mouseGrid[1]*grid.tileSize, mouseGrid[2]*grid.tileSize)
-	table.insert(grid[mouseGrid[1]+math.floor(32/2)][mouseGrid[2]+math.floor(32/2)], entity)
-	table.insert(flooring, entity)
-	autoTile(mouseGrid[1]+math.floor(32/2), mouseGrid[2]+math.floor(32/2), entity)
+	-- tx, ty = p3d({z = camera.x+camera.screenShake.x, y=0, x=camera.z+camera.screenShake.y/2}, camera.dir)
+	-- local mousePos = {love.mouse.getX()-love.graphics.getWidth()/2-tx, love.mouse.getY()*2-love.graphics.getHeight()-ty*2}
+	-- local mouseGrid = {math.floor(mousePos[1]/grid.tileSize+0.5), math.floor(mousePos[2]/grid.tileSize+0.5)}
+	-- local entity = water.new(camera, mouseGrid[1]*grid.tileSize, mouseGrid[2]*grid.tileSize)
+	-- table.insert(grid[mouseGrid[1]+math.floor(32/2)][mouseGrid[2]+math.floor(32/2)], entity)
+	-- table.insert(flooring, entity)
+	-- autoTile(mouseGrid[1]+math.floor(32/2), mouseGrid[2]+math.floor(32/2), entity)
 end
 
