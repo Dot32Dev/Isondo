@@ -5,19 +5,22 @@ intro.project.font = love.graphics.newFont("fonts/Public_Sans/static/PublicSans-
 
 intro.cursor = love.mouse.getSystemCursor("hand")
 
+function intro.easeOutElastic(x)
+  local c4 = (2 * math.pi) / 2.3 -- edit "2.3" for effect
+  return math.pow(2, -18 * x) * math.sin((x * 10 - 0.75) * c4) + 1 -- edit "-18" for effect
+end
+
 function intro:init(subtext)
   self.dot32 = {}
   self.dot32.font = love.graphics.newFont("fonts/PT_Sans/PTSans-Bold.ttf", 100)
   self.dot32.x = love.graphics.getWidth()/2
   self.dot32.y = 0
-  self.dot32.yV = 0
 
   self.sub = {}
   self.sub.font = love.graphics.newFont("fonts/PT_Sans/PTSans-Regular.ttf", 45)
   self.sub.text = subtext or "Games"
   self.sub.x = 0
   self.sub.y = love.graphics.getHeight()/1.65
-  self.sub.xV = 0
 
   self.timer = 0
   self.phase = 1
@@ -38,13 +41,9 @@ function intro:update(dt)
   if not dt then
     error("dt is required for intro.update(dt)")
   end
-  self.dot32.yV = self.dot32.yV + ((self.phase == 1 and (love.graphics.getHeight()/2 - self.dot32.y)*0.5) or 0)
-  self.dot32.y = self.dot32.y + self.dot32.yV/2
-  self.dot32.yV = self.dot32.yV * 0.6
 
-  self.sub.xV = self.sub.xV + (love.graphics.getWidth()/2 - self.sub.x)*0.5
-  self.sub.x = self.sub.x + self.sub.xV/2
-  self.sub.xV = self.sub.xV * 0.6
+  self.dot32.y = self.easeOutElastic(self.timer)*love.graphics.getHeight()/2
+  self.sub.x = self.easeOutElastic(self.timer)*love.graphics.getWidth()/2
 
   self.timer = self.timer + dt
   
@@ -79,8 +78,8 @@ function intro:draw()
 
     love.graphics.setColour(r,g,b,a)
     love.graphics.setFont(font)
-    --love.graphics.setColor(1, 1, 1, self.ghost)
-    --love.graphics.rectangle("fill", 50, love.graphics.getHeight()-5-100, ((love.graphics.getWidth()-100)/self.length*self.timer, 5)
+    -- love.graphics.setColor(1, 1, 1, self.ghost)
+    -- love.graphics.rectangle("fill", 0, love.graphics.getHeight()-5, ((love.graphics.getWidth())/self.length*self.timer), 5)
   end
 end
 
@@ -109,14 +108,6 @@ function intro.pprint(stringg, x, y)
   love.graphics.setColour(r,g,b,a)
 end
 
--- function love.keypressed(key)
-  -- if key == "f" and love.keyboard.isDown("lgui") and love.keyboard.isDown("lctrl") and operatingSystem == "OS X" then
-  --     love.window.setFullscreen(true)
-  -- end
-  -- if key == "f11" and operatingSystem == "Windows" then
-  --     love.window.setFullscreen(true)
-  -- end
--- end
 function intro.varToString(var) -- thank you so much HugoBDesigner! (https://love2d.org/forums/viewtopic.php?t=82877)
   if type(var) == "string" then
     return "\"" .. var .. "\""
